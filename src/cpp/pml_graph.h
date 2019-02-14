@@ -5,7 +5,8 @@ struct pml_graph {
     int V;
     int A;
     double c;
-    int **sample;    
+    int **sample;
+    int sample_length;
 };
 
 /* Return the |V|x|V| adjacency matrix */
