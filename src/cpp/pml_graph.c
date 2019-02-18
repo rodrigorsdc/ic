@@ -111,22 +111,22 @@ static double estimate_PL(struct pml_graph_data *data) {
 
 static void estimate_graph(struct pml_graph_data *data) {
     double best_value = -INF;
-    int **best_graph = NULL;
+    array *best_edges = array_zeros(data->max_edges);
     array *a = array_arange(2);
     product *p = product_init(a, data->max_edges);
     while(product_has_next(p)) {
 	array *g = product_next(p);
+	data->adj = matrix_int(data->V, data->V);
 	edges_offset(data->adj, data->V, g);
 	double value = estimate_PL(data);
 	if (value > best_value) {
 	    best_value = value;
-	    best_graph = data->adj;
+	    best_edges = array_copy(g);
 	}
-	array_destroy(g);
     }
     array_destroy(a);
     product_finish(p);
-    data->adj = best_graph;    
+    edges_offset(data->adj, data->V, best_edges);
 }
 
 void pml_graph(struct pml_graph_data *data) {
@@ -137,9 +137,9 @@ void pml_graph(struct pml_graph_data *data) {
 }
 
 void test(struct pml_graph_data *data) {
-    data->V = 5;
+    data->V = 6;
     data->A_size = 2;
-    data->c = 1.0;
+    data->c = 0.1;
     data->sample_size = 1000;
     data->sample = (int**) malloc(1000 * sizeof(int*));
     for (int i = 0; i < 1000; i++)
@@ -152,13 +152,10 @@ int main() {
     test(data);
     FILE *f = fopen("sample", "r");
     if (f == NULL) printf("deu ruim\n");
-    rewind(f);
     for (int i = 0; i < data->sample_size; i++)
 	for (int j = 0; j < data->V; j++) {
-	    int k = fscanf(f, "%d", &data->sample[i][j]);
-	    printf("k = %d\n", k);
+	    fscanf(f, "%d", &data->sample[i][j]);
 	}
-
     pml_graph(data);
     for (int i = 0; i < data->V; i++) {
 	for (int j = 0; j < data->V; j++)
