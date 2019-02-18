@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 # Código com funções e classe utilitários
 
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 import numpy as np
 import graph_tool.all as gt
 import requests
