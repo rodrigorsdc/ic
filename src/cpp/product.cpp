@@ -1,15 +1,9 @@
-<<<<<<< HEAD
-#include <stdio.h>
-#include <utility>
-#include <stdlib.h>
-// #include <gsl/gsl_combination.h>
-=======
+
 /* Código de geração de produto cartesiano */
 
 #include <stdio.h>
 #include <utility>
 #include <stdlib.h>
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 #include "array.h"
 #include "util.h"
 
@@ -36,7 +30,7 @@ product* product_init(array* a, int repeat) {
 
 }
 
-bool product_has_next(product* p) {
+int product_has_next(product* p) {
     if (p->counter == p->END) return false;
     return true;
 }

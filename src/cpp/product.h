@@ -12,7 +12,7 @@ typedef struct{
 
 product* product_init(array* a, int repeat);
 array* product_next(product* p);
-bool product_has_next(product* p);
+int product_has_next(product* p);
 void product_finish(product* p);
 
 #endif
