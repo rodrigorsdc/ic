@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-objects = product.o combination.o util.o array.o simple.o
-=======
 objects = product.o combination.o util.o array.o
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 flags = -O3 -lgsl -lgslcblas -lm -Wno-unused-result -fopenmp
 OBJDIR := obj
 BINDIR := bin
@@ -22,12 +18,9 @@ chow: $(OBJS) $(OBJDIR)/chow_liu.o
 pml_cv: $(OBJS) $(OBJDIR)/pml_cv.o
 	$(CC) -o $(BINDIR)/pml_cv $^ $(flags)
 
-<<<<<<< HEAD
-$(OBJDIR)/simple.o: $(SRCDIR)/simple.cpp $(SRCDIR)/combination.h $(SRCDIR)/product.h $(SRCDIR)/array.h
-	$(CC) -c $(OUTPUT_OPTION) $< $(flags)
+pml_graph: $(OBJS) $(OBJDIR)/pml_graph.o
+	$(CC) -o $(BINDIR)/pml_graph $^ $(flags)
 
-=======
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 $(OBJDIR)/chow_liu.o: $(SRCDIR)/chow_liu.cpp $(SRCDIR)/combination.h $(SRCDIR)/array.h $(SRCDIR)/product.h
 	$(CC) -c $(OUTPUT_OPTION) $< $(flags)
 
@@ -41,6 +34,9 @@ $(OBJDIR)/pml.o: $(SRCDIR)/pml.cpp $(SRCDIR)/product.h $(SRCDIR)/combination.h $
 	$(CC) -c $(OUTPUT_OPTION) $< $(flags)
 
 $(OBJDIR)/pml_cv.o: $(SRCDIR)/pml_cv.cpp $(SRCDIR)/product.h $(SRCDIR)/util.h
+	$(CC) -c $(OUTPUT_OPTION) $< $(flags)
+
+$(OBJDIR)/pml_graph.o: $(SRCDIR)/pml_graph.c $(SRCDIR)/product.h $(SRCDIR)/util.h
 	$(CC) -c $(OUTPUT_OPTION) $< $(flags)
 
 $(OBJDIR)/product.o: $(SRCDIR)/product.cpp $(SRCDIR)/product.h $(SRCDIR)/array.h
