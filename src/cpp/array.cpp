@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 /* Código que define um array de inteiros */
 
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 #include <stdlib.h>
 #include <stdio.h>
 #include "array.h"

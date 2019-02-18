@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 /* Código gerador de combinação a partir de um array */
 
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 #include <vector>
 #include <set>
 #include <gsl/gsl_combination.h>
