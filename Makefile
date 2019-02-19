@@ -7,7 +7,7 @@ CC := g++
 OBJS := $(addprefix $(OBJDIR)/,$(objects))
 
 
-all: dir pml chow pml_cv
+all: dir pml chow pml_cv pml_graph
 
 pml: $(OBJS) $(OBJDIR)/pml.o 
 	$(CC) -o $(BINDIR)/pml $^ $(flags)
