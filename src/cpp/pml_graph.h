@@ -12,6 +12,7 @@ struct pml_graph_data {
     int **adj;
     int **sample;
     int sample_size;
+    int num_graphs;
 };
 
 /* The adjacency matrix graph estimated will be stored at
