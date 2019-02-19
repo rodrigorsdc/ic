@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-=======
 /* Código para o calculo da validação cruzada do algoritmo
    de máxima verossimilhança */
 
->>>>>>> a756c6795a95e1038195346aa4cd75f8a2347186
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
