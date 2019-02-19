@@ -64,9 +64,9 @@ static array *adj_to_list(int *W, int n) {
 
 /* Return the likelihood of a vertex given its
  * neighborhood */
-static double L_vertex(int v, struct pml_graph_data *data) {
+static double L_vertex(int v, struct pml_graph_data *data, int **adj) {
     double L_value = 0.0;
-    array *W = adj_to_list(data->adj[v], data->V);
+    array *W = adj_to_list(adj[v], data->V);
     int m = W->size;
     product *p = product_init(data->A, 1);
     while(product_has_next(p)) {
@@ -85,61 +85,78 @@ static double L_vertex(int v, struct pml_graph_data *data) {
     return L_value;
 }
 
-static int get_num_edges(struct pml_graph_data *data) {
+static int get_num_edges(int **adj, int V) {
     int ans = 0;
-    for (int i = 0; i < data->V; i++)
-	for (int j = 0; j < data->V; j++)
-	    if (data->adj[i][j] == 1)
+    for (int i = 0; i < V; i++)
+	for (int j = 0; j < V; j++)
+	    if (adj[i][j] == 1)
 		ans++;
     return ans / 2;
 }
 
-static double penalized_factor(struct pml_graph_data *data) {
-    int num_edges = get_num_edges(data);
+static double penalized_factor(struct pml_graph_data *data,
+			       int **adj) {
+    int num_edges = get_num_edges(adj, data->V);
     return data->c * pow(data->A_size, num_edges) *
 	(log(data->sample_size) / log(data->A_size));
 }
 
 /* Return the penalized likelihood of a given graph */
-static double estimate_PL(struct pml_graph_data *data) {
+static double estimate_PL(struct pml_graph_data *data,
+			  int **adj) {
     double value = 0.0;
-    for (int i = 0; i < data->V; i++)
-	value += L_vertex(i, data);
-    value -= penalized_factor(data);	
+    for (int v = 0; v < data->V; v++)
+	value += L_vertex(v, data, adj);
+    value -= penalized_factor(data, adj);	
     return value;    
+} 
+
+static int ***gen_all_adj(struct pml_graph_data *data) {
+    int ***ans = (int ***) malloc(data->num_graphs * sizeof(int **));
+    for (int i = 0; i < data->num_graphs; i++)
+	ans[i] = matrix_int(data->V, data->V);
+    array *a = array_arange(2);
+    product *p = product_init(a, data->max_edges);
+    int i = 0;
+    while(product_has_next(p)) {
+	array *g = product_next(p);
+	edges_offset(ans[i++], data->V, g);
+    }
+    return ans;
 }
 
 static void estimate_graph(struct pml_graph_data *data) {
     double best_value = -INF;
-    array *best_edges = array_zeros(data->max_edges);
+    int **best_edges = NULL;
     array *a = array_arange(2);
+    int ***all_adj = gen_all_adj(data);
     product *p = product_init(a, data->max_edges);
-    while(product_has_next(p)) {
-	array *g = product_next(p);
-	data->adj = matrix_int(data->V, data->V);
-	edges_offset(data->adj, data->V, g);
-	double value = estimate_PL(data);
+    #pragma omp parallel for
+    for (int i = 0; i < data->num_graphs; i++) {
+	double value = estimate_PL(data, all_adj[i]);
+	#pragma omp critical
 	if (value > best_value) {
 	    best_value = value;
-	    best_edges = array_copy(g);
+	    best_edges = all_adj[i];
 	}
     }
     array_destroy(a);
     product_finish(p);
-    edges_offset(data->adj, data->V, best_edges);
+    data->adj = best_edges;
 }
 
 void pml_graph(struct pml_graph_data *data) {
     data->adj = matrix_int(data->V, data->V);
     data->max_edges = max_edges(data->V);
     data->A = array_arange(data->A_size);
+    data->num_graphs = 1 << data->max_edges;
     estimate_graph(data);
 }
 
 void test(struct pml_graph_data *data) {
-    data->V = 6;
+    data->V = 5;
     data->A_size = 2;
-    data->c = 0.1;
+    data->c = 1.0;
     data->sample_size = 1000;
     data->sample = (int**) malloc(1000 * sizeof(int*));
     for (int i = 0; i < 1000; i++)
@@ -150,7 +167,7 @@ int main() {
     struct pml_graph_data *data = (struct pml_graph_data *)
 	malloc(sizeof(struct pml_graph_data));
     test(data);
-    FILE *f = fopen("sample", "r");
+    FILE *f = fopen("sample3", "r");
     if (f == NULL) printf("deu ruim\n");
     for (int i = 0; i < data->sample_size; i++)
 	for (int j = 0; j < data->V; j++) {
