@@ -13,6 +13,18 @@ static void check_mcalloc(void *ptr) {
     }
 }
 
+void free_matrixINT(int **A, int n) {
+    for (int i = 0; i < n; i++)
+	free(A[i]);
+    free(A);
+}
+
+void matrixINTcpy(int **A, int **B, int n, int m) {
+    for (int i = 0; i < n; i++)
+	for (int j = 0; j < m; j++)
+	    A[i][j] = B[i][j];
+}
+
 int* malloc_int(int n) {
     int* ptr;
     ptr = (int*) malloc(n * sizeof(int));
@@ -20,7 +32,7 @@ int* malloc_int(int n) {
     return ptr;
 }
 
-int **matrix_int(int n, int m) {
+int **matrixINT(int n, int m) {
     int **ptr;
     ptr = (int **) calloc(n, sizeof(int *));
     check_mcalloc(ptr);
