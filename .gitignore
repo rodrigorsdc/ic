@@ -1,5 +1,7 @@
-# Object file
-*.o
+# Folders
+foo.Rcheck/
 
+*.o
+*.so
 # Ada Library Information
 *.ali
