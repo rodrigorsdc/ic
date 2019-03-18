@@ -1,2 +1,2 @@
 useDynLib(bla)
-export(qwe)
+export(pml_graph)
