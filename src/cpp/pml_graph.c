@@ -296,10 +296,10 @@ static void cross_validation(struct pml_graph_data *data) {
 }
 
 void test(struct pml_graph_data *data) {
-    data->V = 5;
+    data->V = 4;
     data->A_size = 2;
     data->c = 1.0;
-    data->k = 2;
+    data->k = 10;
     data->sample_size = 5000;
     data->sample = (int**) malloc(data->sample_size * sizeof(int*));
     for (int i = 0; i < data->sample_size; i++)
@@ -317,7 +317,7 @@ int main() {
 	malloc(sizeof(struct pml_graph_data));
     test(data);
     setUp(data);
-    FILE *f = fopen("sample3", "r");
+    FILE *f = fopen("sample22", "r");
     if (f == NULL) printf("deu ruim\n");
     for (int i = 0; i < data->sample_size; i++)
 	for (int j = 0; j < data->V; j++) {
