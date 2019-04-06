@@ -295,38 +295,9 @@ static void cross_validation(struct pml_graph_data *data) {
     data->c = best_c;
 }
 
-void test(struct pml_graph_data *data) {
-    data->V = 4;
-    data->A_size = 2;
-    data->c = 1.0;
-    data->k = 10;
-    data->sample_size = 5000;
-    data->sample = (int**) malloc(data->sample_size * sizeof(int*));
-    for (int i = 0; i < data->sample_size; i++)
-	data->sample[i] = (int*) malloc(data->V * sizeof(int));
-    data->fold = matrixINT(data->sample_size, data->V);
-    data->out_fold = matrixINT(data->sample_size, data->V);
-    data->cv_enable = 1;
-    data->c_min = 0.1;
-    data->c_max = 2.0;
-    data->c_interval = 0.05;	
-}
-
-int main() {
-    struct pml_graph_data *data = (struct pml_graph_data *)
-	malloc(sizeof(struct pml_graph_data));
-    test(data);
-    setUp(data);
-    FILE *f = fopen("sample22", "r");
-    if (f == NULL) printf("deu ruim\n");
-    for (int i = 0; i < data->sample_size; i++)
-	for (int j = 0; j < data->V; j++) {
-	    fscanf(f, "%d", &data->sample[i][j]);
-	}
-    cross_validation(data);
-    printf("c: %lf\n", data->c);
+void pml_graph(struct pml_graph_data *data) {
+    if (data->cv_enable)
+	cross_validation(data);
     estimate_graph(data);
-    print_adj(data);
-    return 0;
 }
 
