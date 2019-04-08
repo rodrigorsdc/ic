@@ -113,15 +113,15 @@ static double L_vertex(int v, struct mrfe_graph_data *data, int **adj) {
     int m = W->size;
     product *p = product_init(data->A, 1);
     while(product_has_next(p)) {
-	array *a = product_next(p);
-	product *pW = product_init(data->A, m);
-	while(product_has_next(pW)) {
-	    array *aW = product_next(pW);
-	    L_value += likelihood(v, W, a, aW, data);
-	    array_destroy(aW);
-	}
-	array_destroy(a);
-	product_finish(pW);	    
+    	array *a = product_next(p);
+    	product *pW = product_init(data->A, m);
+    	while(product_has_next(pW)) {
+    	    array *aW = product_next(pW);
+    	    L_value += likelihood(v, W, a, aW, data);
+    	    array_destroy(aW);
+    	}
+    	array_destroy(a);
+    	product_finish(pW);
     }
     array_destroy(W);
     product_finish(p);
@@ -299,5 +299,29 @@ void mrfe_graph(struct mrfe_graph_data *data) {
     if (data->cv_enable)
 	cross_validation(data);
     estimate_graph(data);
+}
+
+/* For tests */
+int main() {
+    struct mrfe_graph_data *data = (struct mrfe_graph_data *)
+	malloc(sizeof(struct mrfe_graph_data));
+    data->V = 5;
+    data->A_size = 2;
+    data->A = array_arange(data->A_size);
+    data->c = 0.4;
+    data->max_edges = 10;
+    data->adj = matrixINT(5, 5);
+    data->sample_size = 10000;
+    data->sample = matrixINT(10000, 5);
+    data->num_graphs = 1024;
+    data->cv_enable = 0;
+    FILE *f = fopen("../../testing_samples/sample55", "r");
+    for (int i = 0; i < 10000; i++)
+    	for (int j = 0; j < 5; j++)
+    	    fscanf(f, "%d", &data->sample[i][j]);
+    fclose(f);
+    mrfe_graph(data);
+    print_adj(data);
+    return 0;
 }
 
