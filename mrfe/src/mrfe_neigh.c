@@ -1,84 +1,101 @@
 #include <stdio.h>
-#include <vector>
-#include <set>
-#include <limits>
 #include <math.h>
-#include <string>
 #include <stdlib.h>
 #include <unistd.h>
 #include <omp.h>
-
-using namespace std;
+#include "mrfe_neigh.h"
 #include "product.h"
 #include "combination.h"
 #include "pml.h"
 #include "array.h"
 #include "util.h"
 
-typedef struct{
-    array* V;
-    array* A;
-    double c;
-    int V_size;
-    int A_size;
-    int n;
-    int** sample;
-    int max_neig;
-}config;
-
-typedef struct{
-    int a;
-    int b;
-}pair;
-
-static config* con;
-static int cv = 0;
-
-static array* estimate_neighborhood(int v);
-static double estimate_PL(int v, array* W);
-static double penalized_factor(int W);
-static double get_p_hat(int v, array* W, array* a, array* aW);
-static array** estimate_graph();
-static void save_graph(const char* cons_out, const char* ncons_out, array** ne_hat);
-static void config_read_V(FILE* f);
-static void config_read_A(FILE* f);
-static void config_read_c(FILE* f);
-static void config_read_sample(FILE* f);
-static void config_read_max_neig(FILE* f);
-static config* malloc_config(unsigned int n);
-static void config_destroy();
-static void config_init(const char *in);
-static void save_graph_cv(const char* out, array** ne_hat);
-
-void pml(const char* in, const char* cons_out, const char* ncons_out) {
-    config_init(in);
-    array** ne_hat = estimate_graph();
-    if (cv == 1) save_graph_cv(ncons_out, ne_hat);
-    else         save_graph(cons_out, ncons_out, ne_hat);
-    array_matrix_destroy(ne_hat, con->V_size);
-    config_destroy();
+static void count_in_sample(int v, array *W, array* a,
+			    array* aW, int **sample, int sample_size,
+			    int *N_W, int *N_v_W) {
+    *N_W = 0, *N_v_W = 0;
+    int m = W->size;
+    array* x_W = array_zeros(m);    
+    for (int i = 0; i < sample_size; i++) {
+        for (int j = 0; j < m; j++)
+	    x_W->array[j] = sample[i][W->array[j]];
+        if (array_equals(x_W, aW)) {
+            if (sample[i][v] == a->array[0])
+		*N_v_W = *N_v_W + 1;
+            *N_W = *N_W + 1;
+        }
+    }
+    array_destroy(x_W);        
 }
 
-/* Função que devolve a vizinhança
-   estimada de cada vértice */
-static array** estimate_graph() {
-    array** ne_hat = array_matrix(con->V_size);
-    #pragma omp parallel for
-    for (int v = 0; v < con->V_size; v++)
-        ne_hat[v] = estimate_neighborhood(v);
-    return ne_hat;
+
+static double likelihood_cv(int v, array* W, array *a,
+			    array* aW, struct mrfe_neigh_data *data) {
+
+    int N_W, N_v_W;
+    double p_hat = 0.0;
+    double alpha = 0.000001, pmin = 0.000001;
+    count_in_sample(v, W, a, aW, data->fold,
+		    data->fold_size, &N_W, &N_v_W);
+    if (N_W == 0)
+	p_hat = 1.0 / data->A_size;
+    else 
+	p_hat = (double) N_v_W / N_W;
+    p_hat = (1.0 - alpha) * p_hat + alpha * pmin;
+    /* Out of fold */
+    count_in_sample(v, W, a, aW, data->out_fold,
+		    data->out_fold_size, &N_W, &N_v_W);
+    return (double) N_v_W * log(p_hat);
 }
 
-/* Estima cada vizinhança do vértice "v". */
-static array* estimate_neighborhood(int v) {
+static double penalized_factor(int W, struct mrfe_neigh_data *data) {
+    return (data->c * pow(data->A_size, W) *
+	    (log(data->sample_size) / log(data->A_size)));
+}
+
+static double likelihood(int v, array* W, array* a, array* aW,
+			struct mrfe_neigh_data *data) {
+
+    int N_W = 0, N_v_W = 0;
+    double p_hat = 0.0;
+    count_in_sample(v, W, a, aW, data->sample,
+		    data->sample_size, &N_W, &N_v_W);
+    if (N_W == 0)
+	p_hat = 1.0 / data->A_size;
+    else 
+	p_hat = (double) N_v_W / N_W;
+    if (N_v_W == 0)
+	return 0.0;    
+    return (double) N_v_W * log(p_hat);
+}
+
+static double L_vertex(int v, array* W, struct mrfe_neigh_data *data) {
+    int m = W->size;
+    double L_value = 0.0;
+    product* p = product_init(data->A, 1);
+    while (product_has_next(p)) {
+        array* a = product_next(p);
+        product* pW = product_init(data->A, m);
+        while (product_has_next(pW)) {
+            array* aW = product_next(pW);
+            L_value += likelihood(v, W, a, aW, data);
+            array_destroy(aW);            
+        }
+        array_destroy(a);
+        product_finish(pW);
+    }
+    product_finish(p);
+    return L_value - penalized_factor(W->size, data);
+}
+static array* estimate_neighborhood(int v, struct mrfe_neigh_data *data) {
     double best_value = -1 * INF;
-    array* best_neighborhood = array_zeros(0);
-    array* V = array_erase(con->V, v);
-    for (int i = 0; i <= con->max_neig; i++) {
+    array* best_neighborhood = array_zeros(0);    
+    array* V = array_erase(data->V, v);    
+    for (int i = 0; i <= data->max_neigh; i++) {
         combination* c = combination_init(V, i);
         while (combination_has_next(c)) {
             array* W = combination_next(c);
-            double PL_value = estimate_PL(v, W);
+            double PL_value = L_vertex(v, W, data);
             if (PL_value > best_value) {
                 best_value = PL_value;
                 array_destroy(best_neighborhood);
@@ -92,170 +109,110 @@ static array* estimate_neighborhood(int v) {
     return best_neighborhood;
 }
 
-/* Devolve o valor de máxima verossimilnha penalizada do vértice v
-   dado W. */
-static double estimate_PL(int v, array* W) {
-    int m = W->size;
-    double L_value = 0.0;
-    product* p = product_init(con->A, 1);
+static void estimate_graph(struct mrfe_neigh_data *data) {
+    array** ne_hat = array_matrix(data->V_size);
+    #pragma omp parallel for
+    for (int v = 0; v < data->V_size; v++)
+        ne_hat[v] = estimate_neighborhood(v, data);
+    data->adj = ne_hat;
+}
+
+static void cv_blocs(struct mrfe_neigh_data *data) {
+    data->fold_bloc = array_zeros(data->k + 1);
+    int q = data->sample_size / data->k;
+    int r = data->sample_size % data->k;
+    data->fold_bloc->array[0] = -1;
+    for (int i = 1; i <= r; i++) {
+        data->fold_bloc->array[i] = data->fold_bloc->array[i-1] + q + 1;
+    }
+    for (int i = r+1; i <= data->k; i++)
+        data->fold_bloc->array[i] = data->fold_bloc->array[i-1] + q;
+}
+
+static void get_fold(int k, struct mrfe_neigh_data *data) {
+    int a = data->fold_bloc->array[k];
+    int b = data->fold_bloc->array[k-1];
+    data->fold_size = a - b;
+    for (int i = b+1, j = 0; i <= a; i++)
+	data->fold[j++] = data->sample[i];
+}
+
+static void get_out_fold(int k, struct mrfe_neigh_data *data) {
+    int a = data->fold_bloc->array[k];
+    int b = data->fold_bloc->array[k-1];
+    data->out_fold_size = data->sample_size - (a - b);
+    for (int i = 0, j = 0; i < data->sample_size; i++) {
+	if (!(i > b && i <= a))
+	    data->out_fold[j++] = data->sample[i];
+    }
+}
+
+static void sample_cv(struct mrfe_neigh_data *data) {
+    matrixINTcpy(data->sample, data->out_fold,
+		 data->out_fold_size, data->V_size);
+    /* data->sample = data->out_fold; */    
+    data->sample_size = data->out_fold_size;    
+}
+
+static void un_sample_cv(int **tmp, struct mrfe_neigh_data *data) {
+    matrixINTcpy(data->sample, tmp, data->sample_size, data->V_size);
+    data->sample_size = data->out_fold_size + data->fold_size;
+}
+
+static double L_vertex_cv(int v, struct mrfe_neigh_data *data) {
+    double value = 0.0;
+    product *p = product_init(data->A, 1);
+    array *W = data->adj[v];
     while (product_has_next(p)) {
-        array* a = product_next(p);
-        product* pW = product_init(con->A, m);
-        while (product_has_next(pW)) {
-            array* aW = product_next(pW);
-            L_value += get_p_hat(v, W, a, aW);
-            array_destroy(aW);            
-        }
-        array_destroy(a);
-        product_finish(pW);
+	array *a = product_next(p);
+	product *pW = product_init(data->A, W->size);
+	while(product_has_next(pW)) {
+	    array *aW = product_next(pW);
+	    value += likelihood_cv(v, W, a, aW, data);
+	    array_destroy(aW);
+	}
+	product_finish(pW);
+	array_destroy(a);
     }
+    array_destroy(W);
     product_finish(p);
-    return L_value - penalized_factor(W->size);
+    return value;    
 }
 
-/* Devolve o valor de penalização de um conjunto
-   de tamanho W de vizinhos. */
-static double penalized_factor(int W) {
-    return (con->c * pow(con->A_size, W) * (log(con->n) / log(con->A_size)));
-}
-
-/* Devolve o valor de p_hat(v = a | W = aW) */
-static double get_p_hat(int v, array* W, array* a, array* aW) {
-    int N_W = 0, N_v_W = 0;
-    double p_hat = 0.0;
-    int m = W->size;
-    array* x_W = array_zeros(m);    
-    for (int i = 0; i < con->n; i++) {
-        for (int j = 0; j < m; j++) x_W->array[j] = con->sample[i][W->array[j]];
-        if (array_equals(x_W, aW)) {
-            if (con->sample[i][v] == a->array[0]) N_v_W++;
-            N_W++;
-        }
-    }
-    array_destroy(x_W);
-    if (N_W == 0) p_hat = 1.0 / con->A_size;
-    else          p_hat = (double) N_v_W / N_W;
-    if (N_v_W == 0) return 0.0;
-    
-    return (double) N_v_W * log(p_hat);
-
-}
-
-/* Grava no arquivo "out" as informação de cada vizinhança estimada da
-seguinte forma: na i-ésima linha haverá um inteiro "s" que indicará
-quantos vizinhos o vértices "i" tem. Os próximos "s" inteiros contém
-os vértices da vizinhança. */
-static void save_graph_cv(const char* out, array** ne_hat) {
-    FILE* f_cv = fopen(out, "w");
-    for (int i = 0; i < con->V_size; i++) {
-        fprintf(f_cv, "%d ", ne_hat[i]->size);
-        for (int j = 0; j < ne_hat[i]->size; j++) {
-            fprintf(f_cv, "%d ", ne_hat[i]->array[j]);
-        }
-        fprintf(f_cv, "\n");
-    }
-    fclose(f_cv);
-}
-
-/* Grava nos arquivos "ncons_out" e "cons_out" os grafos na abordagem
-não-conservativa e conservativa, respectivamente.  As vizinhanças de
-cada nó se encontra no parâmetro "ne_hat". */
-static void save_graph(const char* cons_out, const char* ncons_out,
-                       array** ne_hat) {
-    FILE* f_cons = fopen(cons_out, "w");
-    FILE* f_ncons = fopen(ncons_out, "w");
-    fprintf(f_cons, "%d\n", con->V_size);
-    fprintf(f_ncons, "%d\n", con->V_size);
-    for (int i = 0; i < con->V_size; i++) {
-        for (int j = 0; j < ne_hat[i]->size; j++) {
-            fprintf(f_ncons, "%d %d\n", i, ne_hat[i]->array[j]);
-            if(array_contains(ne_hat[ne_hat[i]->array[j]], i))
-                fprintf(f_cons, "%d %d\n", i, ne_hat[i]->array[j]);
-        }
+static double cv_value(struct mrfe_neigh_data *data) {
+    double value = 0.0;    
+    int **tmp = matrixINT(data->sample_size, data->V_size);
+    matrixINTcpy(tmp, data->sample, data->sample_size, data->V_size);
+    for (int i = 1; i <= data->k; i++) {
+	get_fold(i, data);
+	get_out_fold(i, data);
+    	sample_cv(data); 
+	estimate_graph(data); /* Estimate graph with K - 1 folds */
+    	for (int v = 0; v < data->V_size; v++) {
+	    value += L_vertex_cv(v, data);
+    	}
+    	un_sample_cv(tmp, data);
     }    
-    fclose(f_cons);
-    fclose(f_ncons);
+    free_matrixINT(tmp, data->sample_size);
+    return value / data->k;
 }
 
-static void config_read_V(FILE* f) {
-    int V_size;
-    fscanf(f, "%d", &V_size);
-    con->V = array_arange(V_size);
-    con->V_size = V_size;
-}
-
-static void config_read_c(FILE* f) {
-    double c;
-    fscanf(f, "%lf", &c);
-    con->c = c;
-}
-
-static void config_read_sample(FILE* f) {
-    int n;
-    fscanf(f, "%d", &n);
-    con->sample = (int**) malloc(n * sizeof(int*));
-    for (int i = 0; i < n; i++) {
-        con->sample[i] = (int*) malloc(con->V_size * sizeof(int));
-        for (int j = 0; j < con->V_size; j++)
-            fscanf(f, "%d", &con->sample[i][j]);
+static void cross_validation(struct mrfe_neigh_data *data) {
+    double best_value = -INF, best_c = 0.0;
+    cv_blocs(data);
+    for (double c = data->c_min ; c <= data->c_max; c += data->c_interval) {
+    	data->c = c;
+    	double value = cv_value(data);
+    	if (value > best_value) {
+    	    best_value = value;
+    	    best_c = c;
+    	}
     }
-    con->n = n;
+    data->c = best_c;
 }
 
-static void config_read_A(FILE* f) {
-    int A_size;
-    fscanf(f, "%d", &A_size);
-    con->A = array_arange(A_size);
-    con->A_size = A_size;
+void mrfe_neigh(struct mrfe_neigh_data *data) {
+    if(data->cv_enable)
+	cross_validation(data);
+    estimate_graph(data);
 }
-
-static void config_read_max_neig(FILE* f) {
-    int max_neig;
-    fscanf(f, "%d", &max_neig);
-    con->max_neig = max_neig;
-}
-         
-static void config_init(const char *in) {
-    con = malloc_config(1);
-    FILE* f = fopen(in, "r");
-    config_read_V(f);
-    config_read_A(f);
-    config_read_c(f);
-    config_read_max_neig(f);
-    config_read_sample(f);
-    fclose(f);    
-}
-
-static void config_destroy() {
-    array_destroy(con->V);
-    array_destroy(con->A);
-    for (int i = 0; i < con->n; i++) {
-        free(con->sample[i]);
-        con->sample[i] = NULL;
-    }
-    free(con->sample);
-    con->sample = NULL;
-    free(con);
-    con = NULL;        
-}
-
-static config* malloc_config(unsigned int n) {
-    config* ptr = (config*) malloc(n * sizeof(config));
-    if (ptr == NULL) {
-        printf("malloc devolveu NULL!\n");
-        exit(EXIT_FAILURE);
-    }
-    return ptr;
-}
-
-int main(int argc, char *argv[]) {
-    if (argc != 4 && argc != 5) {
-        printf("Falta argumentos!");
-        return 1;
-    } else if (argc == 5){
-        cv = 1;        
-    }
-    pml(argv[1], argv[2], argv[3]);
-    return 0;    
-}
-
