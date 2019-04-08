@@ -6,7 +6,7 @@
 #include "mrfe_neigh.h"
 #include "product.h"
 #include "combination.h"
-#include "pml.h"
+#include "mrfe_neigh.h"
 #include "array.h"
 #include "util.h"
 
@@ -27,7 +27,6 @@ static void count_in_sample(int v, array *W, array* a,
     }
     array_destroy(x_W);        
 }
-
 
 static double likelihood_cv(int v, array* W, array *a,
 			    array* aW, struct mrfe_neigh_data *data) {
@@ -56,7 +55,7 @@ static double penalized_factor(int W, struct mrfe_neigh_data *data) {
 static double likelihood(int v, array* W, array* a, array* aW,
 			struct mrfe_neigh_data *data) {
 
-    int N_W = 0, N_v_W = 0;
+    int N_W, N_v_W;
     double p_hat = 0.0;
     count_in_sample(v, W, a, aW, data->sample,
 		    data->sample_size, &N_W, &N_v_W);

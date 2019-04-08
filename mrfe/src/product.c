@@ -7,11 +7,11 @@
 #include "util.h"
 #include "product.h"
 
-static int pow(int a, int b);    
+
 static void product_step_pointer(product* p);
 static product* malloc_product(int n);
 
-static int pow(int a, int b) {
+static int pow2(int a, int b) {
     int result = 1;
     for (int i = 0; i < b; i++) result *= a;
     return result;
@@ -22,7 +22,7 @@ product* product_init(array* a, int repeat) {
     p->pointer = array_zeros(repeat);
     p->A = array_copy(a);
     p->counter = 0;
-    p->END = pow(p->A->size, p->pointer->size);
+    p->END = pow2(p->A->size, p->pointer->size);
     return p;
 
 }
