@@ -1,9 +1,9 @@
 #include "array.h"
 
-#ifndef PML_GRAPH_H
-#define PML_GRAPH_H
+#ifndef MRFE_GRAPH_H
+#define MRFE_GRAPH_H
 
-struct pml_graph_data {
+struct mrfe_graph_data {
     int V;
     int A_size;
     array *A;
@@ -28,6 +28,6 @@ struct pml_graph_data {
 
 /* The adjacency matrix graph estimated will be stored at
  * data->adj*/
-void pml_graph(struct pml_graph_data *data);
+void mrfe_graph(struct mrfe_graph_data *data);
 
 #endif

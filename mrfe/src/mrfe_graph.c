@@ -3,12 +3,12 @@
 #include <math.h>
 #include "product.h"
 #include "array.h"
-#include "pml_graph.h"
+#include "mrfe_graph.h"
 #include "util.h"
 
 #define max_edges(V) ((V*(V-1)) / 2)
 
-static void print_adj(struct pml_graph_data *data) {
+static void print_adj(struct mrfe_graph_data *data) {
     for(int i = 0; i < data->V; i++) {
 	for (int j = 0; j < data->V; j++)
 	    printf("%d ", data->adj[i][j]);
@@ -16,7 +16,7 @@ static void print_adj(struct pml_graph_data *data) {
     }
 }
 
-static void print_sample(struct pml_graph_data *data) {
+static void print_sample(struct mrfe_graph_data *data) {
     for (int i = 0; i < data->sample_size; i++) {
 	for (int j = 0; j < data->V; j++)
 	    printf("%d ", data->sample[i][j]);
@@ -54,7 +54,7 @@ static void count_in_sample(int v, array *W, array* a,
 }
 
 static double likelihood_cv(int v, array* W, array *a,
-			    array* aW, struct pml_graph_data *data) {
+			    array* aW, struct mrfe_graph_data *data) {
 
     int N_W, N_v_W;
     double p_hat = 0.0;
@@ -73,7 +73,7 @@ static double likelihood_cv(int v, array* W, array *a,
 }
 
 static double likelihood(int v, array* W, array* a,
-			 array* aW, struct pml_graph_data *data) {
+			 array* aW, struct mrfe_graph_data *data) {
     int N_W = 0, N_v_W = 0;
     double p_hat = 0.0;
     count_in_sample(v, W, a, aW, data->sample,
@@ -107,7 +107,7 @@ static array *adj_to_list(int *W, int n) {
 
 /* Return the likelihood of a vertex given its
  * neighborhood */
-static double L_vertex(int v, struct pml_graph_data *data, int **adj) {
+static double L_vertex(int v, struct mrfe_graph_data *data, int **adj) {
     double L_value = 0.0;
     array *W = adj_to_list(adj[v], data->V);
     int m = W->size;
@@ -137,7 +137,7 @@ static int get_num_edges(int **adj, int V) {
     return ans / 2;
 }
 
-static double penalized_factor(struct pml_graph_data *data,
+static double penalized_factor(struct mrfe_graph_data *data,
 			       int **adj) {
     int num_edges = get_num_edges(adj, data->V);
     return data->c * pow(data->A_size, num_edges) *
@@ -145,7 +145,7 @@ static double penalized_factor(struct pml_graph_data *data,
 }
 
 /* Return the penalized likelihood of a given graph */
-static double estimate_PL(struct pml_graph_data *data,
+static double estimate_PL(struct mrfe_graph_data *data,
 			  int **adj) {
     double value = 0.0;
     for (int v = 0; v < data->V; v++)
@@ -155,7 +155,7 @@ static double estimate_PL(struct pml_graph_data *data,
 } 
 
 /* All possible graph with V vertices */
-static int ***gen_all_adj(struct pml_graph_data *data) {
+static int ***gen_all_adj(struct mrfe_graph_data *data) {
     int ***ans = (int ***) malloc(data->num_graphs * sizeof(int **));
     for (int i = 0; i < data->num_graphs; i++)
 	ans[i] = matrixINT(data->V, data->V);
@@ -169,12 +169,12 @@ static int ***gen_all_adj(struct pml_graph_data *data) {
     return ans;
 }
 
-static void free_all_adj(int ***all_adj, struct pml_graph_data *data) {
+static void free_all_adj(int ***all_adj, struct mrfe_graph_data *data) {
     for (int i = 0 ; i < data->num_graphs; i++)
 	free_matrixINT(all_adj[i], data->V);    
 }
 
-static void estimate_graph(struct pml_graph_data *data) {
+static void estimate_graph(struct mrfe_graph_data *data) {
     double best_value = -INF;
     int **best_edges = NULL;
     array *a = array_arange(2);
@@ -195,7 +195,7 @@ static void estimate_graph(struct pml_graph_data *data) {
     free_all_adj(all_adj, data);
 }
 
-static void cv_blocs(struct pml_graph_data *data) {
+static void cv_blocs(struct mrfe_graph_data *data) {
     data->fold_bloc = array_zeros(data->k + 1);
     int q = data->sample_size / data->k;
     int r = data->sample_size % data->k;
@@ -207,7 +207,7 @@ static void cv_blocs(struct pml_graph_data *data) {
         data->fold_bloc->array[i] = data->fold_bloc->array[i-1] + q;
 }
 
-static void get_fold(int k, struct pml_graph_data *data) {
+static void get_fold(int k, struct mrfe_graph_data *data) {
     int a = data->fold_bloc->array[k];
     int b = data->fold_bloc->array[k-1];
     data->fold_size = a - b;
@@ -215,7 +215,7 @@ static void get_fold(int k, struct pml_graph_data *data) {
 	data->fold[j++] = data->sample[i];
 }
 
-static void get_out_fold(int k, struct pml_graph_data *data) {
+static void get_out_fold(int k, struct mrfe_graph_data *data) {
     int a = data->fold_bloc->array[k];
     int b = data->fold_bloc->array[k-1];
     data->out_fold_size = data->sample_size - (a - b);
@@ -225,18 +225,18 @@ static void get_out_fold(int k, struct pml_graph_data *data) {
     }
 }
 
-static void sample_cv(int **tmp, struct pml_graph_data *data) {
+static void sample_cv(int **tmp, struct mrfe_graph_data *data) {
     matrixINTcpy(data->sample, data->out_fold, data->out_fold_size, data->V);
     /* data->sample = data->out_fold; */    
     data->sample_size = data->out_fold_size;    
 }
 
-static void un_sample_cv(int **tmp, struct pml_graph_data *data) {
+static void un_sample_cv(int **tmp, struct mrfe_graph_data *data) {
     matrixINTcpy(data->sample, tmp, data->sample_size, data->V);
     data->sample_size = data->out_fold_size + data->fold_size;
 }
 
-static double L_vertex_cv(int v, struct pml_graph_data *data) {
+static double L_vertex_cv(int v, struct mrfe_graph_data *data) {
     double value = 0.0;
     product *p = product_init(data->A, 1);
     array *W = adj_to_list(data->adj[v], data->V);
@@ -256,7 +256,7 @@ static double L_vertex_cv(int v, struct pml_graph_data *data) {
     return value;    
 }
 
-static double cv_value(struct pml_graph_data *data) {
+static double cv_value(struct mrfe_graph_data *data) {
     double value = 0.0;    
     int **tmp = matrixINT(data->sample_size, data->V);
     matrixINTcpy(tmp, data->sample, data->sample_size, data->V);
@@ -274,14 +274,14 @@ static double cv_value(struct pml_graph_data *data) {
     return value / data->k;
 }
 
-static void setUp(struct pml_graph_data *data) {
+static void setUp(struct mrfe_graph_data *data) {
     data->adj = matrixINT(data->V, data->V);
     data->max_edges = max_edges(data->V);
     data->A = array_arange(data->A_size);
     data->num_graphs = 1 << data->max_edges;
 }
 
-static void cross_validation(struct pml_graph_data *data) {
+static void cross_validation(struct mrfe_graph_data *data) {
     double best_value = -INF, best_c = 0.0;
     cv_blocs(data);
     for (double c = data->c_min ; c <= data->c_max; c += data->c_interval) {
@@ -295,7 +295,7 @@ static void cross_validation(struct pml_graph_data *data) {
     data->c = best_c;
 }
 
-void pml_graph(struct pml_graph_data *data) {
+void mrfe_graph(struct mrfe_graph_data *data) {
     if (data->cv_enable)
 	cross_validation(data);
     estimate_graph(data);

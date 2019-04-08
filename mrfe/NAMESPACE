@@ -1,2 +1,2 @@
-useDynLib(bla)
-export(pml_graph)
+useDynLib(mrfe)
+export(mrfe_graph)
