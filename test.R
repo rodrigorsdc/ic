@@ -1,4 +1,6 @@
-library('bla')
-s = as.matrix(read.table('testing_samples/sample4'))
-pml_graph(2L, s, c(0.1, 2.0, 0.1), 5L)
+library('mrfe')
+s = as.matrix(read.table('testing_samples/sample55'))
+colnames(s) = NULL
+rownames(s) = NULL
+mrfe_neigh(2L, s, 5L, 4L)
 print("SUCESSO!")
