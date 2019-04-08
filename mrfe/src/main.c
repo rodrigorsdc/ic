@@ -1,6 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
-#include "pml_graph.h"
+#include "mrfe_graph.h"
 #include "util.h"
 
 void flatten_to_matrix(int **M, int n, int m, int *V) {
@@ -25,7 +25,7 @@ void print_matrix(int **M, int n, int m) {
     }
 }
 
-void graph_setUp(struct pml_graph_data *data, SEXP A_size,
+void graph_setUp(struct mrfe_graph_data *data, SEXP A_size,
 		 SEXP sample, SEXP c, SEXP k) {
     data->V = ncols(sample);
     data->A_size = *(INTEGER(A_size));
@@ -54,8 +54,8 @@ void graph_setUp(struct pml_graph_data *data, SEXP A_size,
 }
 
 
-/* PML GRAPH */
-SEXP pml_gr(SEXP A_size, SEXP sample, SEXP c, SEXP k) {
+/* MRFE GRAPH */
+SEXP mrfe_gr(SEXP A_size, SEXP sample, SEXP c, SEXP k) {
     SEXP ans;
     if (!isInteger(A_size) || length(A_size) != 1)
 	error("A_size argument must be a scalar integer");
@@ -67,10 +67,10 @@ SEXP pml_gr(SEXP A_size, SEXP sample, SEXP c, SEXP k) {
 	error("k argument must be a scalar integer");
     ans = PROTECT(allocMatrix(INTSXP, ncols(sample), ncols(sample)));
     
-    struct pml_graph_data *data = (struct pml_graph_data *)
-    	malloc(sizeof(struct pml_graph_data));
+    struct mrfe_graph_data *data = (struct mrfe_graph_data *)
+    	malloc(sizeof(struct mrfe_graph_data));
     graph_setUp(data, A_size, sample, c, k);
-    pml_graph(data);
+    mrfe_graph(data);
     if (length(c) == 3)
 	printf("best regularizer: %lf\n", data->c);
     matrix_to_flatten(INTEGER(ans), data->adj, data->V, data->V);
