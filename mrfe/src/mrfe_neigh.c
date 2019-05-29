@@ -33,17 +33,17 @@ static double likelihood_cv(int v, array* W, array *a,
 
     int N_W, N_v_W;
     double p_hat = 0.0;
-    double alpha = 0.000001, pmin = 0.000001;
-    count_in_sample(v, W, a, aW, data->fold,
-		    data->fold_size, &N_W, &N_v_W);
+    double alpha = 0.000001, pmin = 0.0000001;
+    count_in_sample(v, W, a, aW, data->out_fold,
+		    data->out_fold_size, &N_W, &N_v_W);
     if (N_W == 0)
 	p_hat = 1.0 / data->A_size;
     else 
 	p_hat = (double) N_v_W / N_W;
-    p_hat = (1.0 - alpha) * p_hat + alpha * pmin;
-    /* Out of fold */
-    count_in_sample(v, W, a, aW, data->out_fold,
-		    data->out_fold_size, &N_W, &N_v_W);
+    p_hat = (1.0 - alpha) * p_hat + (alpha * pmin);
+    /* in of fold */
+    count_in_sample(v, W, a, aW, data->fold,
+		    data->fold_size, &N_W, &N_v_W);
     return (double) N_v_W * log(p_hat);
 }
 
@@ -132,8 +132,11 @@ static void get_fold(int k, struct mrfe_neigh_data *data) {
     int a = data->fold_bloc->array[k];
     int b = data->fold_bloc->array[k-1];
     data->fold_size = a - b;
-    for (int i = b+1, j = 0; i <= a; i++)
-	data->fold[j++] = data->sample[i];
+    for (int i = b+1, j = 0; i <= a; i++) {
+	for (int k = 0; k < data->V_size; k++)
+	    data->fold[j][k] = data->sample[i][k];
+	j++;
+    }
 }
 
 static void get_out_fold(int k, struct mrfe_neigh_data *data) {
@@ -141,8 +144,11 @@ static void get_out_fold(int k, struct mrfe_neigh_data *data) {
     int b = data->fold_bloc->array[k-1];
     data->out_fold_size = data->sample_size - (a - b);
     for (int i = 0, j = 0; i < data->sample_size; i++) {
-	if (!(i > b && i <= a))
-	    data->out_fold[j++] = data->sample[i];
+	if (!(i > b && i <= a)) {
+	    for (k = 0; k < data->V_size; k++)
+		data->out_fold[j][k] = data->sample[i][k];
+	    j++;
+	}
     }
 }
 
@@ -154,8 +160,8 @@ static void sample_cv(struct mrfe_neigh_data *data) {
 }
 
 static void un_sample_cv(int **tmp, struct mrfe_neigh_data *data) {
-    matrixINTcpy(data->sample, tmp, data->sample_size, data->V_size);
     data->sample_size = data->out_fold_size + data->fold_size;
+    matrixINTcpy(data->sample, tmp, data->sample_size, data->V_size);
 }
 
 static double L_vertex_cv(int v, struct mrfe_neigh_data *data) {
