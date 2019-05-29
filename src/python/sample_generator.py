@@ -1,4 +1,4 @@
-import graph_tool.all as gt
+import networkx as nx
 import numpy as np
 import time
 
@@ -12,7 +12,7 @@ class SampleGenerator:
 
     # Gera uma amostra de tamanho n de acordo com as probabilidades condicionais mantidas na variavel self.p_cond    
     def sample(self, n):
-        nv = self.g.num_vertices()
+        nv = self.g.number_of_nodes()
         smpl = np.zeros((n, nv), dtype=np.int32)
         V = tuple(self.cond_neigh.keys())
         a_choice = self._a_choice
@@ -50,9 +50,9 @@ class SampleGenerator:
     
     def _gen_cond_neigh(self, g):
         cond_neigh = {}
-        for v in g.vertices():
+        for v in g.nodes():
             v_cond = []
-            for w in g.get_out_neighbours(v):
+            for w in g.neighbors(v):
                 if (int(w) > int(v)): v_cond.append(int(w))
             cond_neigh[int(v)] = sorted(v_cond)
         return cond_neigh
@@ -74,9 +74,13 @@ def gen_in_file(A, c, sample, d):
     f.close()
 
 if __name__ == '__main__':
-    g = gt.Graph(directed=False)
-    g = gt.random_graph(250, rand, directed=False)
-    gen = SampleGenerator({0, 1, 2}, g)
-    sample = gen.sample(100)
-    gen_in_file({0, 1, 2}, 0.5, sample, 2)
+    g = nx.Graph()
+    g.add_edge(0, 4)
+    g.add_edge(0, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 3)
+    g.add_edge(2, 4)
+    gen = SampleGenerator({0, 1}, g)
+    sample = gen.sample(750)
+    gen_in_file({0, 1}, 0.5, sample, 2)
     
