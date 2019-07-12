@@ -27,22 +27,6 @@ void print_matrix(int **M, int n, int m) {
     }
 }
 
-int max(int *v, int n) {
-    int m = -0x7fffffff -1;
-    for (int i = 0; i < n; i++)
-	if (v[i] > m)
-	    m = v[i];
-    return m;
-}
-
-int min(int *v, int n) {
-    int m = 0x7fffffff;
-    for (int i = 0; i < n; i++)
-	if(v[i] < m)
-	    m = v[i];
-    return m;
-}
-
 void graph_setUp(struct mrfe_graph_data *data, SEXP A_size,
 		 SEXP sample, SEXP c, SEXP k) {
     data->V = ncols(sample);
@@ -135,10 +119,8 @@ void input_checking(SEXP A_size, SEXP sample, SEXP c, SEXP max_neigh,
     if (!isNumeric(A_size) || length(A_size) != 1)
 	error("A_size argument must be a scalar integer");
 
-    if (!isNumeric(sample) || min(INTEGER(sample), length(sample)) < 0 ||
-	max(INTEGER(sample), length(sample)) >= asInteger(A_size))
-	error("sample argument must be a integer-entry matrix and its "
-	      "value must be between 0 and A_size - 1");
+    if (!isNumeric(sample) || !isMatrix(sample))
+	error("sample argument must be a integer-entry matrix");
 
     if (!isNumeric(c) || (length(c) != 1 &&  length(c) != 3))
 	error("c argument must be a scalar double or 3-length "
