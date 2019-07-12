@@ -84,7 +84,7 @@ void neigh_setUp(struct mrfe_neigh_data *data, SEXP A_size,
 static SEXP array_to_vector(int i, struct mrfe_neigh_data *data) {
     SEXP v = PROTECT(allocVector(INTSXP, data->adj[i]->size));
     for (int j = 0; j < data->adj[i]->size; j++)
-	INTEGER(v)[j] = data->adj[i]->array[j];
+	INTEGER(v)[j] = data->adj[i]->array[j]+1;
     return v;
 
 
