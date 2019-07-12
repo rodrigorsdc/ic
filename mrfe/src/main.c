@@ -134,18 +134,22 @@ void input_checking(SEXP A_size, SEXP sample, SEXP c, SEXP max_neigh,
 		    SEXP k) {
     if (!isNumeric(A_size) || length(A_size) != 1)
 	error("A_size argument must be a scalar integer");
+
     if (!isNumeric(sample) || min(INTEGER(sample), length(sample)) < 0 ||
 	max(INTEGER(sample), length(sample)) >= asInteger(A_size))
 	error("sample argument must be a integer-entry matrix and its "
 	      "value must be between 0 and A_size - 1");
+
     if (!isNumeric(c) || (length(c) != 1 &&  length(c) != 3))
 	error("c argument must be a scalar double or 3-length "
- "double vector");
+	      "double vector");
+
     if (!isNull(max_neigh) && (!isNumeric(max_neigh) ||
 			       length(max_neigh) != 1 ||
 			       ncols(sample) <= asInteger(max_neigh)))
 	error("max_neigh, if used, must be a scalar integer and"
 	      " be less than ncols(sample)");
+
     if (length(k) != 1 && !isNumeric(k))
 	error("k argument must be a scalar integer");
 }
