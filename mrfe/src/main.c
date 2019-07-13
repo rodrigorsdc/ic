@@ -27,17 +27,17 @@ void print_matrix(int **M, int n, int m) {
     }
 }
 
-void graph_setUp(struct mrfe_graph_data *data, SEXP A_size,
+void graph_setUp(struct mrfe_graph_data *data, SEXP A,
 		 SEXP sample, SEXP c, SEXP k) {
     data->V = ncols(sample);
-    data->A_size = *(INTEGER(A_size));
+    data->A_size = *(INTEGER(A));
     data->sample_size = nrows(sample);
     data->sample = matrixINT(data->sample_size, data->V);
     flatten_to_matrix(data->sample, data->sample_size,
     		      data->V, INTEGER(sample));
     data->adj = matrixINT(data->V, data->V);
     data->max_edges = (data->V * (data->V - 1)) / 2;
-    data->A = array_arange(data->A_size);
+    data->A = array_arange(data->A);
     data->num_graphs = 1 << data->max_edges;
     if (length(c) == 3) {
 	data->fold = matrixINT(data->sample_size, data->V);
@@ -50,19 +50,19 @@ void graph_setUp(struct mrfe_graph_data *data, SEXP A_size,
     } else {
 	data->cv_enable = 0;
 	data->c = *(REAL(c));
-    }    
+    }
 }
 
-void neigh_setUp(struct mrfe_neigh_data *data, SEXP A_size,
+void neigh_setUp(struct mrfe_neigh_data *data, SEXP A,
 		 SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     data->V_size = ncols(sample);
-    data->A_size = asInteger(A_size);
+    data->A_size = asInteger(A);
     data->sample_size = nrows(sample);
     data->sample = matrixINT(data->sample_size, data->V_size);
     flatten_to_matrix(data->sample, data->sample_size,
     		      data->V_size, INTEGER(sample));
     data->V = array_arange(data->V_size);
-    data->A = array_arange(data->A_size);
+    data->A = array_arange(data->A);
     if (length(c) == 3) {
 	data->fold = matrixINT(data->sample_size, data->V_size);
 	data->out_fold = matrixINT(data->sample_size, data->V_size);
@@ -89,22 +89,23 @@ static SEXP array_to_vector(int i, struct mrfe_neigh_data *data) {
 
 
 }
-/* MRFE GRAPH */
-SEXP mrfe_gr(SEXP A_size, SEXP sample, SEXP c, SEXP k) {    
-    if (!isInteger(A_size) || length(A_size) != 1)
-	error("A_size argument must be a scalar integer");
-    if (!isInteger(sample))
-	error("sample argument must be a integer-entry matrix");
+// MRFE GRAPH
+SEXP mrfe_gr(SEXP A, SEXP sample, SEXP c, SEXP k) {
+    if (!isInteger(A) || length(A) != 1)
+	error("A argument must be a scalar integer");
+    if (!isInteger(sample) || !isMatrix(sample))
+    	error("sample argument must be a integer-entry matrix");
     if (!isReal(c) || (length(c) != 1 &&  length(c) != 3))
-	error("c argument must be a scalar double or 3-length double vector");
+	error("c argument must be a scalar double or"
+	      " 3-length double vector");
     if (length(c) == 3 && !isInteger(k))
 	error("k argument must be a scalar integer");
     
-    SEXP ans = PROTECT(allocMatrix(INTSXP, ncols(sample), ncols(sample)));    
+    SEXP ans = PROTECT(allocMatrix(INTSXP, ncols(sample), ncols(sample)));
     struct mrfe_graph_data *data = (struct mrfe_graph_data *)
     	malloc(sizeof(struct mrfe_graph_data));
     
-    graph_setUp(data, A_size, sample, c, k);
+    graph_setUp(data, A, sample, c, k);
     mrfe_graph(data);
     if (length(c) == 3)
 	printf("best regularizer: %lf\n", data->c);
@@ -114,10 +115,10 @@ SEXP mrfe_gr(SEXP A_size, SEXP sample, SEXP c, SEXP k) {
 }
 
 
-void input_checking(SEXP A_size, SEXP sample, SEXP c, SEXP max_neigh,
+void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
 		    SEXP k) {
-    if (!isNumeric(A_size) || length(A_size) != 1)
-	error("A_size argument must be a scalar integer");
+    if (!isNumeric(A) || length(A) != 1)
+	error("A argument must be a scalar integer");
 
     if (!isNumeric(sample) || !isMatrix(sample))
 	error("sample argument must be a integer-entry matrix");
@@ -136,15 +137,15 @@ void input_checking(SEXP A_size, SEXP sample, SEXP c, SEXP max_neigh,
 	error("k argument must be a scalar integer");
 }
 
-SEXP mrfe_ne(SEXP A_size, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
-    input_checking(A_size, sample, c, max_neigh, k);
+SEXP mrfe_neigh(SEXP A, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
+    input_checking(A, sample, c, max_neigh, k);
     SEXP ans;
     ans = PROTECT(allocVector(VECSXP, ncols(sample)));
     PROTECT(sample = coerceVector(sample, INTSXP));
     PROTECT(c = coerceVector(c, REALSXP));
     struct mrfe_neigh_data *data = (struct mrfe_neigh_data *)
 	R_alloc(1, sizeof(struct mrfe_graph_data));
-    neigh_setUp(data, A_size, sample, c, max_neigh, k);
+    neigh_setUp(data, A, sample, c, max_neigh, k);
     mrfe_neigh(data);
     if (length(c) == 3)
 	printf("best regularizer: %lf\n", data->c);
