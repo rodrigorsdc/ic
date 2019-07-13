@@ -1,6 +1,8 @@
 Package: mrfe
+Title: Markov Random Field estimator
 Version: 0.1
-Date: 2019-02-13
+Date: 2019-07-13
+Description: A Markov Random Field estimator
 License: GPL-2
-Author: Rodrigo Carvalho
+Author: c(Rodrigo Carvalho, Iara Moreira Frondana, Florencia Leonardi)
 Maintainer: Rodrigo Carvalho <rodrigorsdc@gmail.com>
