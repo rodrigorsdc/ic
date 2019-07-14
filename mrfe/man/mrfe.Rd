@@ -18,13 +18,13 @@ mrfe(A, sapmle, c, max_neigh)
     Size of the alphabet.
 }
   \item{sample}{
-    A integer-valued matrix. Each value may be belong range 0 and 'A' - 1.
+    A integer-valued matrix. Each value Must belong range 0 and 'A' - 1.
 }
   \item{c}{
-    The penalization constant. May be positive.
+    The penalization constant. Must be positive.
 }
   \item{max_neigh}{
-    The maximum length of a candidated Markovian neighborhood.
+    The maximum length of a candidate Markovian neighborhood.
 }
 
 }
