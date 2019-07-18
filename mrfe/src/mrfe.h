@@ -28,6 +28,7 @@ struct mrfe_data {
     double c_interval;
 };
 
-void mrfe_neigh(struct mrfe_data *data);
+void mrfe(struct mrfe_data *data);
+void mrfe_cv(struct mrfe_data *data);
 
 #endif

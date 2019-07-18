@@ -1,11 +1,11 @@
-mrfe_graph <- function(A_size, sample, c, k=NULL) {
-    f <- function(A_size, sample, c, k).Call('mrfe_gr', A_size,
-                                             sample, c, k);
-    return (f(A_size, sample, c, k));
-}
-
-"mrfe_neigh" <- function(A_size, sample, c, max_neigh=NULL,k=10) {
-     return (.Call('mrfe_ne', A_size,
+"mrfe" <- function(A, sample, c, max_neigh=NULL,k=10) {
+     return (.Call('Rmrfe', A,
                     sample, c,
                    max_neigh, k))
+}
+
+"cv.mrfe" <- function(A, sample, c_lower, c_upper, c_step, k=10,
+                      max_neigh=NULL) {
+    return (.Call('Rmrfe_cv', A, sample, c(c_lower, c_upper, c_step),
+                                           max_neigh, k))
 }

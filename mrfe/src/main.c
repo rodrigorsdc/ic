@@ -36,18 +36,16 @@ void setUp(struct mrfe_data *data, SEXP A,
     		      data->V_size, INTEGER(sample));
     data->V = array_arange(data->V_size);
     data->A = array_arange(data->A_size);
-    if (length(c) == 3) {
+    if (data->cv_enable == 1) {
 	data->fold = matrixINT(data->sample_size, data->V_size);
 	data->out_fold = matrixINT(data->sample_size, data->V_size);
-	data->cv_enable = 1;
 	data->c_min = REAL(c)[0];
 	data->c_max = REAL(c)[1];
 	data->c_interval = REAL(c)[2];
 	data->k = asInteger(k);
-    } else {
-	data->cv_enable = 0;
+    } else 
 	data->c = asReal(c);
-    }
+    
     if (isNull(max_neigh))
 	data->max_neigh = data->V_size - 1;
     else
@@ -65,15 +63,14 @@ static SEXP array_to_vector(int i, struct mrfe_data *data) {
 
 void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
 		    SEXP k) {
-    if (!isNumeric(A) || length(A) != 1)
-	error("A argument must be a scalar integer");
+    if (!isNumeric(A) || length(A) != 1 || asInteger(A) <= 0)
+	error("A argument must be a scalar positive integer");
 
     if (!isNumeric(sample) || !isMatrix(sample))
 	error("sample argument must be a integer-entry matrix");
 
-    if (!isNumeric(c) || (length(c) != 1 &&  length(c) != 3))
-	error("c argument must be a scalar double or 3-length "
-	      "double vector");
+    if (!isNumeric(c))
+	error("c argument must be double");
 
     if (!isNull(max_neigh) && (!isNumeric(max_neigh) ||
 			       length(max_neigh) != 1 ||
@@ -85,6 +82,8 @@ void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
 	error("k argument must be a scalar integer");
 }
 
+
+
 SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     input_checking(A, sample, c, max_neigh, k);
     SEXP ans;
@@ -93,13 +92,28 @@ SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     PROTECT(c = coerceVector(c, REALSXP));
     struct mrfe_data *data = (struct mrfe_data *)
 	R_alloc(1, sizeof(struct mrfe_data));
+    data->cv_enable = 0;
     setUp(data, A, sample, c, max_neigh, k);
     mrfe(data);
-    if (length(c) == 3)
-	printf("best regularizer: %lf\n", data->c);
     for (int i = 0; i < ncols(sample); i++)
 	SET_VECTOR_ELT(ans, i, array_to_vector(i, data));
     UNPROTECT(ncols(sample) + 3);
+    return ans;
+}
+
+SEXP Rmrfe_cv(SEXP A, SEXP sample, SEXP c,
+	      SEXP max_neigh, SEXP k) {
+    input_checking(A, sample, c, max_neigh, k);
+    SEXP ans = PROTECT(allocVector(REALSXP, 1));
+    PROTECT(sample = coerceVector(sample, INTSXP));
+    PROTECT(c = coerceVector(c, REALSXP));
+    struct mrfe_data *data = (struct mrfe_data *)
+	R_alloc(1, sizeof(struct mrfe_data));
+    data->cv_enable = 1;
+    setUp(data, A, sample, c, max_neigh, k);
+    mrfe_cv(data);
+    REAL(ans)[0] = data->c;
+    UNPROTECT(3);
     return ans;
 }
 

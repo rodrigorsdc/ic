@@ -201,7 +201,7 @@ static double cv_value(struct mrfe_data *data) {
     return value / data->k;
 }
 
-static void cross_validation(struct mrfe_data *data) {
+void mrfe_cv(struct mrfe_data *data) {
     double best_value = -INF, best_c = 0.0;
     cv_blocs(data);
     for (double c = data->c_min ; c <= data->c_max; c += data->c_interval) {
@@ -216,7 +216,5 @@ static void cross_validation(struct mrfe_data *data) {
 }
 
 void mrfe(struct mrfe_data *data) {
-    if(data->cv_enable)
-	cross_validation(data);
     estimate_graph(data);
 }
