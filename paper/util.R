@@ -28,23 +28,33 @@ list_to_matrix.ncons <- function(list.adj) {
 }
 
 errors <- function(g, eg){
-    n <- ncol(g)
-    error.under <- 0
-    error.over <- 0
-    for (i in 1:n) {
-        for (j in 1:n) {
-            if (g[i, j] < eg[i, j])
-                error.over <- error.over + 1
-            else if (g[i, j] > eg[i, j])
-                error.under <- error.under + 1            
+    n<-length(g)
+    error.under<-0
+    error.over<-0
+    for(i in 1:n){
+        if(g[i]!=eg[i]){
+            if(g[i]<eg[i]){
+                error.over<-error.over+1
+            }
+            else{
+                error.under<-error.under+1
+            }
         }
+        i<-i+1
     }
-    error.total <- (error.under + error.over) / length(g)
-    error.under <- error.under / sum(g)
-    error.over<-error.over/(length(g)-sum(g))
+    error.total<-(error.under+error.over)/(n - ncol(g))
+    if (sum(g) == 0)
+        error.under <- 0
+    else 
+        error.under<-error.under/sum(g)
+    if((n - ncol(g)) - sum(g) == 0)
+        error.over <- 0
+    else
+        error.over<-error.over/((n - ncol(g))-sum(g))
     results<-cbind(error.under,error.over,error.total)
     return(results)
 }
+
 
 graph.const_sample <- function(sample_sizes, consts, A,
                                sample_graph, file_name) {
@@ -55,7 +65,7 @@ graph.const_sample <- function(sample_sizes, consts, A,
     for (s in sample_sizes) {
         for (c in consts) {
             sample = sample_graph(s)
-            list.adj = mrfe_neigh(A, sample, c)
+            list.adj = mrfe(A, sample, c)
             matrix.adj = list_to_matrix.ncons(list.adj)
             grafo<-graph_from_adjacency_matrix(matrix.adj, mode="undirect")
             #grafo$layout <- layout_on_grid(grafo, 5)
@@ -74,7 +84,7 @@ graph.const_sample <- function(sample_sizes, consts, A,
     for (s in sample_sizes) {
         for (c in consts) {
             sample = sample_graph(s)
-            list.adj = mrfe_neigh(A, sample, c)
+            list.adj = mrfe(A, sample, c)
             matrix.adj = list_to_matrix.cons(list.adj)
             grafo<-graph_from_adjacency_matrix(matrix.adj, mode="undirect")
             #grafo$layout <- layout_on_grid(grafo, 5)
@@ -102,7 +112,7 @@ means_sds.errors <- function(N, step, original_graph, A,
         e.cons = matrix(c(rep(0, 90)), ncol=30, nrow=3)
         for (i in 1:30) {
             sample <- sample_graph(n)
-            list.adj <- mrfe_neigh(A, sample, 1.0)
+            list.adj <- mrfe(A, sample, 1.0)
             matrix.adj.ncons <- list_to_matrix.ncons(list.adj)
             matrix.adj.cons <- list_to_matrix.cons(list.adj)
             error.ncons <- errors(original_graph, matrix.adj.ncons)
