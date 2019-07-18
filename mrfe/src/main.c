@@ -57,8 +57,6 @@ static SEXP array_to_vector(int i, struct mrfe_data *data) {
     for (int j = 0; j < data->adj[i]->size; j++)
 	INTEGER(v)[j] = data->adj[i]->array[j]+1;
     return v;
-
-
 }
 
 void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
@@ -101,8 +99,8 @@ SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     return ans;
 }
 
-SEXP Rmrfe_cv(SEXP A, SEXP sample, SEXP c,
-	      SEXP max_neigh, SEXP k) {
+SEXP Rmrfe_cv(SEXP A, SEXP sample, SEXP c, SEXP k,
+	      SEXP max_neigh) {
     input_checking(A, sample, c, max_neigh, k);
     SEXP ans = PROTECT(allocVector(REALSXP, 1));
     PROTECT(sample = coerceVector(sample, INTSXP));
