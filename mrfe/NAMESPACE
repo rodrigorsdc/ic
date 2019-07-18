@@ -1,3 +1,5 @@
 useDynLib(mrfe)
-export(mrfe_graph)
-export(mrfe_neigh)
+export(mrfe)
+export(cv.mrfe)
+export(con.mrfe)
+export(ncon.mrfe)
