@@ -78,14 +78,14 @@ void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
 	error("max_neigh, if used, must be a scalar integer and"
 	      " be less than ncols(sample)");
 
-    if (length(k) != 1 && !isNumeric(k))
+    if (k != NULL && length(k) != 1 && !isNumeric(k))
 	error("k argument must be a scalar integer");
 }
 
 
 
-SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
-    input_checking(A, sample, c, max_neigh, k);
+SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
+    input_checking(A, sample, c, max_neigh, NULL);
     SEXP ans;
     ans = PROTECT(allocVector(VECSXP, ncols(sample)));
     PROTECT(sample = coerceVector(sample, INTSXP));
@@ -93,7 +93,7 @@ SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     struct mrfe_data *data = (struct mrfe_data *)
 	R_alloc(1, sizeof(struct mrfe_data));
     data->cv_enable = 0;
-    setUp(data, A, sample, c, max_neigh, k);
+    setUp(data, A, sample, c, max_neigh, NULL);
     mrfe(data);
     for (int i = 0; i < ncols(sample); i++)
 	SET_VECTOR_ELT(ans, i, array_to_vector(i, data));

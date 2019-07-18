@@ -1,7 +1,7 @@
-"mrfe" <- function(A, sample, c, max_neigh=NULL,k=10) {
+"mrfe" <- function(A, sample, c, max_neigh=NULL) {
      return (.Call('Rmrfe', A,
                     sample, c,
-                   max_neigh, k))
+                   max_neigh))
 }
 
 "cv.mrfe" <- function(A, sample, c_lower, c_upper, c_step, k=10,
