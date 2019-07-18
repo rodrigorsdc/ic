@@ -1,9 +1,9 @@
 #include "array.h"
 
-#ifndef PML_H
-#define PML_H
+#ifndef MRFE_H
+#define MRFE_H
 
-struct mrfe_neigh_data {
+struct mrfe_data {
     int V_size;
     array *V;
     int A_size;
@@ -28,6 +28,6 @@ struct mrfe_neigh_data {
     double c_interval;
 };
 
-void mrfe_neigh(struct mrfe_neigh_data *data);
+void mrfe_neigh(struct mrfe_data *data);
 
 #endif
