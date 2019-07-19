@@ -1,14 +1,13 @@
 #ifndef COMBINATION_H
 #define COMBINATION_H
 
-#include <gsl/gsl_combination.h>
 #include "array.h"
 
 typedef struct{
     int n;
-    int size;
+    int k;
     int END;
-    gsl_combination* gsl_c;
+    int *comb;
     array* data;
 }combination;
 

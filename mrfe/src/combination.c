@@ -1,32 +1,51 @@
 /* Código gerador de combinação a partir de um array */
-
-#include <gsl/gsl_combination.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "array.h"
 #include "combination.h"
+#include "util.h"
 
-static combination* malloc_combination(unsigned int n);
+static combination* malloc_combination();
 
 combination* combination_init(array* a, int size) {
-    combination* c = malloc_combination(1);
-    if (size == 0)
+    combination* c = malloc_combination();
     c->n = a->size;
-    c->size = size;
-    // printf("A: %d\n", a->size);
-    c->gsl_c = gsl_combination_calloc(a->size, size);
+    c->k = size;
+    c->comb = (int*) malloc_int(c->k);
     c->data = array_copy(a);
-    c->END = 0;
+    if (size == 0)
+	c->END = 1;
+    else	    
+	c->END = 0;
+    for (int i = 0; i < size; i++)
+	c->comb[i] = i;
+    
     return c;
 }
 
+static int combination_step(combination* c) {
+    int n = c->n;
+    int k = c->k;
+    int i = k - 1;
+    while (i > 0 && c->comb[i] == n - k + i)
+	i--;
+    if (i == 0 && c->comb[i] == n - k)
+	return 0;
+    c->comb[i]++;
+    for (; i < k - 1; i++)
+	c->comb[i + 1] = c->comb[i] + 1;
+    return 1;    
+}
+
+
+
 array* combination_next(combination* c) {
-    array* result = array_zeros(c->size);
-    for (int i = 0; i < c->size; i++) {
-        int indice = gsl_combination_get(c->gsl_c, i);
-        result->array[i] = c->data->array[indice];
+    array* result = array_zeros(c->k);
+    for (int i = 0; i < c->k; i++) {
+	result->array[i] = c->data->array[c->comb[i]];
     }
-    if (gsl_combination_next(c->gsl_c) != GSL_SUCCESS)
-        c->END = 1;
+    if(!combination_step(c))
+	c->END = 1;	
     return result;    
 }
 
@@ -36,13 +55,13 @@ int combination_has_next(combination* c) {
 
 void combination_finish(combination* c) {
     array_destroy(c->data);
-    gsl_combination_free(c->gsl_c);
+    free(c->comb);
     free(c);
     c = NULL;
 }
 
-static combination* malloc_combination(unsigned int n) {
-    combination* ptr = (combination*) malloc(n * sizeof(combination));
+static combination* malloc_combination() {
+    combination* ptr = (combination*) malloc(sizeof(combination));
     if (ptr == NULL) {
         printf("malloc devolveu NULL!\n");
         exit(EXIT_FAILURE);
