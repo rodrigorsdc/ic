@@ -18,14 +18,6 @@ void matrix_to_flatten(int *V, int **M, int n, int m) {
 	    V[n*j + i] = M[i][j];
 }
 
-void print_matrix(int **M, int n, int m) {
-    for (int i = 0; i < n; i++) {
-	for (int j = 0; j < m; j++)
-	    printf("%d ", M[i][j]);
-	printf("\n");
-    }
-}
-
 void setUp(struct mrfe_data *data, SEXP A,
 		 SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     data->V_size = ncols(sample);

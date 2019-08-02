@@ -117,14 +117,6 @@ void array_matrix_destroy(array** a, int nrow) {
     a = NULL;
 }
 
-/* Essa função recebe um array "a" e imprime todos os elementos desse
-   array. */
-void array_print(array* a) {
-    for (int i = 0; i < a->size; i++)
-        printf("%d ", a->array[i]);
-    printf("\n");            
-}
-
 /* Essa função recebe um array "a" e um inteiro "e" e devolve 1 se o
 elemento "e" existe no array e 0 caso contrário */
 int array_contains(array *a, int e) {
