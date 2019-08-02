@@ -23,17 +23,19 @@ void setUp(struct mrfe_data *data, SEXP A,
     data->V_size = ncols(sample);
     data->A_size = asInteger(A);
     data->sample_size = nrows(sample);
+    data->adj = array_matrix(data->V_size);
     data->sample = matrixINT(data->sample_size, data->V_size);
     flatten_to_matrix(data->sample, data->sample_size,
     		      data->V_size, INTEGER(sample));
     data->V = array_arange(data->V_size);
     data->A = array_arange(data->A_size);
     if (data->cv_enable == 1) {
+	data->k = asInteger(k);
+	data->fold_bloc = array_zeros(data->k + 1);
 	data->fold = matrixINT(data->sample_size, data->V_size);
 	data->out_fold = matrixINT(data->sample_size, data->V_size);
 	data->c_values = REAL(c);
 	data->c_values_size = length(c);
-	data->k = asInteger(k);
     } else 
 	data->c = asReal(c);
     
@@ -41,6 +43,21 @@ void setUp(struct mrfe_data *data, SEXP A,
 	data->max_neigh = data->V_size - 1;
     else
 	data->max_neigh = asInteger(max_neigh);
+}
+
+void setDown(struct mrfe_data *data) {
+    if (data->cv_enable == 1) {
+	free_matrixINT(data->fold, data->sample_size);
+	free_matrixINT(data->out_fold, data->sample_size);
+	array_destroy(data->fold_bloc);
+    } else {
+	for (int v = 0; v < data->V_size; v++)
+	    array_destroy(data->adj[v]);
+    }
+    free(data->adj);
+    array_destroy(data->V);
+    array_destroy(data->A);
+    free_matrixINT(data->sample, data->sample_size);
 }
 
 static SEXP array_to_vector(int i, struct mrfe_data *data) {
@@ -86,6 +103,7 @@ SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     mrfe(data);
     for (int i = 0; i < ncols(sample); i++)
 	SET_VECTOR_ELT(ans, i, array_to_vector(i, data));
+    setDown(data);
     UNPROTECT(ncols(sample) + 3);
     return ans;
 }
@@ -102,6 +120,7 @@ SEXP Rmrfe_cv(SEXP A, SEXP sample, SEXP c, SEXP k,
     setUp(data, A, sample, c, max_neigh, k);
     mrfe_cv(data);
     REAL(ans)[0] = data->c;
+    setDown(data);
     UNPROTECT(3);
     return ans;
 }

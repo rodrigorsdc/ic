@@ -25,7 +25,7 @@ void matrixINTcpy(int **A, int **B, int n, int m) {
 
 int* malloc_int(int n) {
     int* ptr;
-    ptr = (int*) malloc(n * sizeof(int));
+    ptr = (int*) calloc(n, sizeof(int));
     check_mcalloc(ptr);
     return ptr;
 }

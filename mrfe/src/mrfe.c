@@ -108,15 +108,12 @@ static array* estimate_neighborhood(int v, struct mrfe_data *data) {
 }
 
 static void estimate_graph(struct mrfe_data *data) {
-    array** ne_hat = array_matrix(data->V_size);
     #pragma omp parallel for
     for (int v = 0; v < data->V_size; v++)
-        ne_hat[v] = estimate_neighborhood(v, data);
-    data->adj = ne_hat;
+	data->adj[v] = estimate_neighborhood(v, data);
 }
 
 static void cv_blocs(struct mrfe_data *data) {
-    data->fold_bloc = array_zeros(data->k + 1);
     int q = data->sample_size / data->k;
     int r = data->sample_size % data->k;
     data->fold_bloc->array[0] = -1;
@@ -190,7 +187,7 @@ static double cv_value(struct mrfe_data *data) {
     for (int i = 1; i <= data->k; i++) {
 	get_fold(i, data);
 	get_out_fold(i, data);
-    	sample_cv(data); 
+	sample_cv(data);
 	estimate_graph(data); /* Estimate graph with K - 1 folds */
     	for (int v = 0; v < data->V_size; v++) {
 	    value += L_vertex_cv(v, data);

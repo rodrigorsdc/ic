@@ -74,7 +74,7 @@ void array_destroy(array* a) {
     free(a->array);
     a->array = NULL;
     free(a);
-    a = NULL;           
+    a = NULL;
 }
 
 void array_matrix_destroy(array** a, int nrow) {
