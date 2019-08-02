@@ -151,7 +151,6 @@ static void get_out_fold(int k, struct mrfe_data *data) {
 static void sample_cv(struct mrfe_data *data) {
     matrixINTcpy(data->sample, data->out_fold,
 		 data->out_fold_size, data->V_size);
-    /* data->sample = data->out_fold; */    
     data->sample_size = data->out_fold_size;    
 }
 
