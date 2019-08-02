@@ -203,13 +203,13 @@ static double cv_value(struct mrfe_data *data) {
 
 void mrfe_cv(struct mrfe_data *data) {
     double best_value = -INF, best_c = 0.0;
-    cv_blocs(data);
-    for (double c = data->c_min ; c <= data->c_max; c += data->c_interval) {
-    	data->c = c;
+    cv_blocs(data);    
+    for (int i = 0 ; i < data->c_values_size; i++) {
+    	data->c = data->c_values[i];
     	double value = cv_value(data);
     	if (value > best_value) {
     	    best_value = value;
-    	    best_c = c;
+    	    best_c = data->c_values[i];
     	}
     }
     data->c = best_c;

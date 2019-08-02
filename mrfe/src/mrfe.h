@@ -23,9 +23,8 @@ struct mrfe_data {
     int **out_fold;
     int out_fold_size;
     int cv_enable;
-    double c_min;
-    double c_max;
-    double c_interval;
+    double *c_values;
+    int c_values_size;
 };
 
 void mrfe(struct mrfe_data *data);

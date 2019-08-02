@@ -31,9 +31,8 @@ void setUp(struct mrfe_data *data, SEXP A,
     if (data->cv_enable == 1) {
 	data->fold = matrixINT(data->sample_size, data->V_size);
 	data->out_fold = matrixINT(data->sample_size, data->V_size);
-	data->c_min = REAL(c)[0];
-	data->c_max = REAL(c)[1];
-	data->c_interval = REAL(c)[2];
+	data->c_values = REAL(c);
+	data->c_values_size = length(c);
 	data->k = asInteger(k);
     } else 
 	data->c = asReal(c);
