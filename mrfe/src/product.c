@@ -1,6 +1,3 @@
-
-/* Código de geração de produto cartesiano */
-
 #include <stdio.h>
 #include <R.h>
 #include <stdlib.h>

@@ -1,4 +1,3 @@
-/* Código gerador de combinação a partir de um array */
 #include <stdio.h>
 #include <R.h>
 #include <stdlib.h>
