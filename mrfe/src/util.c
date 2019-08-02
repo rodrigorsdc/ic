@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <R.h>
 #include <stdio.h>
 #include "util.h"
 
@@ -6,8 +7,7 @@ const double INF = 1.0 / 0.0;
 
 static void check_mcalloc(void *ptr) {
     if (ptr == NULL) {
-	printf("malloc/calloc return NULL!\n");
-	exit(EXIT_FAILURE);
+	error("malloc/calloc returned NULL!\n");
     }
 }
 

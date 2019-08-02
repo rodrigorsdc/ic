@@ -1,5 +1,6 @@
 /* Código gerador de combinação a partir de um array */
 #include <stdio.h>
+#include <R.h>
 #include <stdlib.h>
 #include "array.h"
 #include "combination.h"
@@ -63,8 +64,7 @@ void combination_finish(combination* c) {
 static combination* malloc_combination() {
     combination* ptr = (combination*) malloc(sizeof(combination));
     if (ptr == NULL) {
-        printf("malloc devolveu NULL!\n");
-        exit(EXIT_FAILURE);
+        error("malloc returned NULL!\n");
     }
     return ptr;
 }

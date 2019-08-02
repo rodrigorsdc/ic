@@ -2,6 +2,7 @@
 /* Código de geração de produto cartesiano */
 
 #include <stdio.h>
+#include <R.h>
 #include <stdlib.h>
 #include "array.h"
 #include "util.h"
@@ -64,8 +65,7 @@ array* product_next(product* p) {
 static product* malloc_product(int n) {
     product* ptr = (product*) malloc(n * sizeof(product));
     if (ptr == NULL) {
-        printf("malloc devolveu NULL!\n");
-        exit(EXIT_FAILURE);
+        error("malloc returned NULL!\n");
     }
     return ptr;
 }

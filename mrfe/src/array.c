@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <R.h>
 #include "array.h"
 #include "util.h"
 
@@ -162,8 +163,7 @@ array* array_sub(array* a, int i) {
 static array* malloc_array(int n) {
     array* a = (array*) malloc(n * sizeof(array));
     if (a == NULL) {
-        printf("malloc devolveu NULL!\n");
-        exit(EXIT_FAILURE);
+        error("malloc returned NULL!\n");
     }
     return a;
 }
@@ -173,8 +173,7 @@ static array* malloc_array(int n) {
 static array** malloc_matrix(int n) {
     array** v = (array**) malloc(n * sizeof(array*));
     if (v == NULL) {
-        printf("malloc devolveu NULL!\n");
-        exit(EXIT_FAILURE);
+        error("malloc returned NULL!\n");
     }
     return v;
 }
