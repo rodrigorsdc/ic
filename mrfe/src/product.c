@@ -7,7 +7,7 @@
 
 
 static void product_step_pointer(product* p);
-static product* malloc_product(int n);
+static product* malloc_product();
 
 static int pow2(int a, int b) {
     int result = 1;
@@ -16,7 +16,7 @@ static int pow2(int a, int b) {
 }
 
 product* product_init(array* a, int repeat) {
-    product* p = malloc_product(1);
+    product* p = malloc_product();
     p->pointer = array_zeros(repeat);
     p->A = array_copy(a);
     p->counter = 0;
@@ -59,8 +59,8 @@ array* product_next(product* p) {
     return result;
 }
 
-static product* malloc_product(int n) {
-    product* ptr = (product*) malloc(n * sizeof(product));
+static product* malloc_product() {
+    product* ptr = (product*) malloc(sizeof(product));
     if (ptr == NULL) {
         error("malloc returned NULL!\n");
     }
