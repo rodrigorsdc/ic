@@ -67,28 +67,48 @@ static SEXP array_to_vector(int i, struct mrfe_data *data) {
     return v;
 }
 
-void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
-		    SEXP k) {
-    if (!isNumeric(A) || length(A) != 1 || asInteger(A) <= 0)
-	error("A argument must be a scalar positive integer");
+static void check_A(SEXP A) {    
+    if (!isNumeric(A) || asInteger(A) <= 0)
+	error("A argument must be a scalar positive integer");    
+}
 
+static void check_sample(SEXP sample, int A) {
+    
     if (!isNumeric(sample) || !isMatrix(sample))
 	error("sample argument must be a integer-entry matrix");
 
-    if (!isNumeric(c))
-	error("c argument must be double");
-
-    if (!isNull(max_neigh) && (!isNumeric(max_neigh) ||
-			       length(max_neigh) != 1 ||
-			       ncols(sample) <= asInteger(max_neigh)))
-	error("max_neigh, if used, must be a scalar integer and"
-	      " be less than ncols(sample)");
-
-    if (k != NULL && length(k) != 1 && !isNumeric(k))
-	error("k argument must be a scalar integer");
+    PROTECT(sample = coerceVector(sample, INTSXP));
+    for (int i = 1; i <= length(sample); i++)
+    	if (INTEGER(sample)[i] < 0 || INTEGER(sample)[i] >= A)
+    	    error("sample elements must be belong range 0 and A - 1");
+    UNPROTECT(1);
 }
 
+static void check_c(SEXP c) {
+    if (!isNumeric(c))
+	error("c argument must be double");
+}
 
+static void check_max_neigh(SEXP max_neigh, int V_size) {
+    if (!isNull(max_neigh) && (!isNumeric(max_neigh) ||		       
+			       V_size <= asInteger(max_neigh)))
+	error("max_neigh, if used, must be a non-negative scalar "
+	      "integer and be less than ncols(sample)");
+}
+
+static void check_k(SEXP k) {
+    if (k != NULL && length(k) != 1 && !isNumeric(k))
+	error("k argument must be a scalar integer");    
+}
+
+void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
+		    SEXP k) {
+    check_A(A);
+    check_sample(sample, asInteger(A));
+    check_c(c);
+    check_max_neigh(max_neigh, ncols(sample));
+    check_k(k);
+}
 
 SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     input_checking(A, sample, c, max_neigh, NULL);
