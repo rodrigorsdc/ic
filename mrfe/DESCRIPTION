@@ -1,10 +1,10 @@
 Package: mrfe
 Title: Markov Random Field estimator
 Version: 0.1
-Date: 2019-07-13
+Date: 2019-08-02
 Description: A Markov Random Field estimator that uses a penalized
-maximum conditional likelihood method similar to the Bayesian
-Information Criterion (Frondana, 2016)
-License: GPL-2
+	      maximum conditional likelihood method similar to the Bayesian
+	      Information Criterion (Frondana, 2016).
+License: GPL (>= 3)
 Author: Rodrigo Carvalho [aut, cre], Florencia Leonardi [rev, ths]
 Maintainer: Rodrigo Carvalho <rodrigorsdc@gmail.com>
