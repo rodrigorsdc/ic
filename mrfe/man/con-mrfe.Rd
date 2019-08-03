@@ -20,14 +20,17 @@ con.mrfe(A, sample, c, max_neigh = NULL)
     Size of the alphabet.
 }
   \item{sample}{
-    A integer-valued matrix. Each value must belong range 0 and \code{A} - 1.
+      A integer-valued matrix. Each value must belong range \code{0}
+    and \code{A - 1}. Matrix has dimension \code{n} x \code{V}, where
+    \code{n} is number of samples and \code{V} is number of nodes.
 }
   \item{c}{
       The penalization constant. Must be positive.
 }
   \item{max_neigh}{
     The maximum length of a candidate Markovian neighborhood. Must be
-    less or equal than \code{ncol(sample)}.
+  non-negative and less than \code{ncol(sample)}. If
+  \code{NULL} then \code{max_neigh} will be set as \code{ncol(sample) - 1}.
 }
 }
 \value{
