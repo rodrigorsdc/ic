@@ -10,17 +10,17 @@
   Field graph.
 }
 \usage{
-ncon.mrfe(A, sample, c, max_neigh = NULL)
+ncon.mrfe(a_size, sample, c, max_neigh = NULL)
 
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{A}{
+  \item{a_size}{
     Size of the alphabet.
 }
 \item{sample}{
       A integer-valued matrix. Each value must belong range \code{0}
-    and \code{A - 1}. Matrix has dimension \code{n} x \code{V}, where
+    and \code{a_size - 1}. Matrix has dimension \code{n} x \code{V}, where
     \code{n} is number of samples and \code{V} is number of nodes.
 }
   \item{c}{
@@ -47,9 +47,9 @@ ncon.mrfe(A, sample, c, max_neigh = NULL)
 }
 \examples{
 library(mrfe)
-A = c(0, 1)
-s = matrix(sample(A, size=1000, replace=TRUE), ncol=5)
-ncon.mrfe(length(A), s, 1.0)
+a_size = c(0, 1)
+s = matrix(sample(a_size, size=1000, replace=TRUE), ncol=5)
+ncon.mrfe(length(a_size), s, 1.0)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
