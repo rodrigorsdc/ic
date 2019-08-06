@@ -1,16 +1,17 @@
-\name{ncon.mrfe}
+\name{con.mrfse}
 \encoding{utf-8}
-\alias{ncon.mrfe}
+\alias{con.mrfse}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Non-conservative approach for mrfe
+  Conservative approach for mrfse
 }
 \description{
-  Non-conservative construction of the estimated Markov Random
+  Conservative construction of the estimated Markov Random
   Field graph.
+%%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
-ncon.mrfe(a_size, sample, c, max_neigh = NULL)
+con.mrfse(a_size, sample, c, max_neigh = NULL)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -18,7 +19,7 @@ ncon.mrfe(a_size, sample, c, max_neigh = NULL)
   \item{a_size}{
     Size of the alphabet.
 }
-\item{sample}{
+  \item{sample}{
       A integer-valued matrix. Each value must belong range \code{0}
     and \code{a_size - 1}. Matrix has dimension \code{n} x \code{V}, where
     \code{n} is number of samples and \code{V} is number of nodes.
@@ -45,11 +46,12 @@ ncon.mrfe(a_size, sample, c, max_neigh = NULL)
 \author{
   Rodrigo Carvalho
 }
+
 \examples{
-library(mrfe)
-a_size = c(0, 1)
-s = matrix(sample(a_size, size=1000, replace=TRUE), ncol=5)
-ncon.mrfe(length(a_size), s, 1.0)
+library(mrfse)
+a = c(0, 1)
+s = matrix(sample(a, size=1000, replace=TRUE), ncol=5)
+con.mrfse(length(a), s, 1.0)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

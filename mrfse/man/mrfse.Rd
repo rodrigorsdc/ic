@@ -1,40 +1,39 @@
-\name{cv.mrfe}
-\encoding{UTF-8}
-\alias{cv.mrfe}
+\name{mrfse}
+\encoding{utf-8}
+\alias{mrfse}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Cross-validation for mrfe
+  A Markov Random Field estimator
 }
 \description{
-  K-fold Cross-validation to estimate a penalization constant.
+  A penalized likelihood BIC-based to estimate Markovian neighborhoods.
 }
 \usage{
-cv.mrfe(a_size, sample, can, k = 10, max_neigh = NULL)
+mrfse(a_size, sample, c, max_neigh=NULL)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{a_size}{
     Size of the alphabet.
 }
   \item{sample}{
-      A integer-valued matrix. Each value must belong range \code{0}
+    A integer-valued matrix. Each value must belong range \code{0}
     and \code{a_size - 1}. Matrix has dimension \code{n} x \code{V}, where
     \code{n} is number of samples and \code{V} is number of nodes.
 }
-  \item{can}{
-    Candidates values for penalization constant.
-}
-  \item{k}{
-    Size of fold.
+  \item{c}{
+    The penalization constant. Must be positive.
 }
   \item{max_neigh}{
     The maximum length of a candidate Markovian neighborhood. Must be
   non-negative and less than \code{ncol(sample)}. If
   \code{NULL} then \code{max_neigh} will be set as \code{ncol(sample) - 1}.
 }
+
 }
+
 \value{
-  Return the best fitted for k-fold-cv in \code{can}.
+  A list filled with estimated Markov neighborhood for each graph vertex
 }
 \references{
   FRONDANA, Iara Moreira. \emph{Model selection for discrete Markov random
@@ -47,13 +46,10 @@ cv.mrfe(a_size, sample, can, k = 10, max_neigh = NULL)
 }
 
 \examples{
-library(mrfe)
+library(mrfse)
 a_size = c(0, 1)
-can = seq(0.1, 1.0, 0.1)
 s = matrix(sample(a_size, size=1000, replace=TRUE), ncol=5)
-cv.mrfe(length(a_size), s, can, 5)
+mrfse(length(a_size), s, 1.0)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-%\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+
