@@ -1,13 +1,13 @@
-"mrfe" <- function(a_size, sample, c, max_neigh=NULL) {
-     return (.Call('Rmrfe', a_size, sample, c, max_neigh))
+"mrfse" <- function(a_size, sample, c, max_neigh=NULL) {
+     return (.Call('Rmrfse', a_size, sample, c, max_neigh))
 }
 
-"cv.mrfe" <- function(a_size, sample, can, k=10, max_neigh=NULL) {
-    return (.Call('Rmrfe_cv', a_size, sample, can, k, max_neigh))
+"cv.mrfse" <- function(a_size, sample, can, k=10, max_neigh=NULL) {
+    return (.Call('Rmrfse_cv', a_size, sample, can, k, max_neigh))
 }
 
-"con.mrfe" <- function(a_size, sample, c, max_neigh=NULL) {
-    list.adj <- .Call('Rmrfe', a_size, sample, c, max_neigh)
+"con.mrfse" <- function(a_size, sample, c, max_neigh=NULL) {
+    list.adj <- .Call('Rmrfse', a_size, sample, c, max_neigh)
     n <- length(list.adj)
     matrix.adj <- matrix(rep(0, n**2), ncol=n)
     for (i in 1:n) {
@@ -22,8 +22,8 @@
     return (matrix.adj)
 }
 
-"ncon.mrfe" <- function(a_size, sample, c, max_neigh=NULL) {
-    list.adj <- .Call('Rmrfe', a_size, sample, c, max_neigh)
+"ncon.mrfse" <- function(a_size, sample, c, max_neigh=NULL) {
+    list.adj <- .Call('Rmrfse', a_size, sample, c, max_neigh)
     n <- length(list.adj)
     matrix.adj <- matrix(rep(0, n**2), ncol=n)
     for (i in 1:n) {

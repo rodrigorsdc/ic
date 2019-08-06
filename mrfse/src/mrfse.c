@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <omp.h>
-#include "mrfe.h"
+#include "mrfse.h"
 #include "product.h"
 #include "combination.h"
 #include "array.h"
@@ -28,7 +28,7 @@ static void count_in_sample(int v, array *W, array* a,
 }
 
 static double likelihood_cv(int v, array* W, array *a,
-			    array* aW, struct mrfe_data *data) {
+			    array* aW, struct mrfse_data *data) {
 
     int N_W, N_v_W;
     double p_hat = 0.0;
@@ -46,13 +46,13 @@ static double likelihood_cv(int v, array* W, array *a,
     return (double) N_v_W * log(p_hat);
 }
 
-static double penalized_factor(int W, struct mrfe_data *data) {
+static double penalized_factor(int W, struct mrfse_data *data) {
     return (data->c * pow(data->A_size, W) *
 	    (log(data->sample_size) / log(data->A_size)));
 }
 
 static double likelihood(int v, array* W, array* a, array* aW,
-			struct mrfe_data *data) {
+			struct mrfse_data *data) {
 
     int N_W, N_v_W;
     double p_hat = 0.0;
@@ -67,7 +67,7 @@ static double likelihood(int v, array* W, array* a, array* aW,
     return (double) N_v_W * log(p_hat);
 }
 
-static double L_vertex(int v, array* W, struct mrfe_data *data) {
+static double L_vertex(int v, array* W, struct mrfse_data *data) {
     int m = W->size;
     double L_value = 0.0;
     product* p = product_init(data->A, 1);
@@ -85,7 +85,7 @@ static double L_vertex(int v, array* W, struct mrfe_data *data) {
     product_finish(p);
     return L_value - penalized_factor(W->size, data);
 }
-static array* estimate_neighborhood(int v, struct mrfe_data *data) {
+static array* estimate_neighborhood(int v, struct mrfse_data *data) {
     double best_value = -1 * INF;
     array* best_neighborhood = array_zeros(0);    
     array* V = array_erase(data->V, v);    
@@ -107,13 +107,13 @@ static array* estimate_neighborhood(int v, struct mrfe_data *data) {
     return best_neighborhood;
 }
 
-static void estimate_graph(struct mrfe_data *data) {
+static void estimate_graph(struct mrfse_data *data) {
     #pragma omp parallel for
     for (int v = 0; v < data->V_size; v++)
 	data->adj[v] = estimate_neighborhood(v, data);
 }
 
-static void cv_blocs(struct mrfe_data *data) {
+static void cv_blocs(struct mrfse_data *data) {
     int q = data->sample_size / data->k;
     int r = data->sample_size % data->k;
     data->fold_bloc->array[0] = -1;
@@ -124,7 +124,7 @@ static void cv_blocs(struct mrfe_data *data) {
         data->fold_bloc->array[i] = data->fold_bloc->array[i-1] + q;
 }
 
-static void get_fold(int k, struct mrfe_data *data) {
+static void get_fold(int k, struct mrfse_data *data) {
     int a = data->fold_bloc->array[k];
     int b = data->fold_bloc->array[k-1];
     data->fold_size = a - b;
@@ -135,7 +135,7 @@ static void get_fold(int k, struct mrfe_data *data) {
     }
 }
 
-static void get_out_fold(int k, struct mrfe_data *data) {
+static void get_out_fold(int k, struct mrfse_data *data) {
     int a = data->fold_bloc->array[k];
     int b = data->fold_bloc->array[k-1];
     data->out_fold_size = data->sample_size - (a - b);
@@ -148,18 +148,18 @@ static void get_out_fold(int k, struct mrfe_data *data) {
     }
 }
 
-static void sample_cv(struct mrfe_data *data) {
+static void sample_cv(struct mrfse_data *data) {
     matrixINTcpy(data->sample, data->out_fold,
 		 data->out_fold_size, data->V_size);
     data->sample_size = data->out_fold_size;    
 }
 
-static void un_sample_cv(int **tmp, struct mrfe_data *data) {
+static void un_sample_cv(int **tmp, struct mrfse_data *data) {
     data->sample_size = data->out_fold_size + data->fold_size;
     matrixINTcpy(data->sample, tmp, data->sample_size, data->V_size);
 }
 
-static double L_vertex_cv(int v, struct mrfe_data *data) {
+static double L_vertex_cv(int v, struct mrfse_data *data) {
     double value = 0.0;
     product *p = product_init(data->A, 1);
     array *W = data->adj[v];
@@ -179,7 +179,7 @@ static double L_vertex_cv(int v, struct mrfe_data *data) {
     return value;    
 }
 
-static double cv_value(struct mrfe_data *data) {
+static double cv_value(struct mrfse_data *data) {
     double value = 0.0;    
     int **tmp = matrixINT(data->sample_size, data->V_size);
     matrixINTcpy(tmp, data->sample, data->sample_size, data->V_size);
@@ -197,7 +197,7 @@ static double cv_value(struct mrfe_data *data) {
     return value / data->k;
 }
 
-void mrfe_cv(struct mrfe_data *data) {
+void mrfse_cv(struct mrfse_data *data) {
     double best_value = -INF, best_c = 0.0;
     cv_blocs(data);    
     for (int i = 0 ; i < data->c_values_size; i++) {
@@ -211,6 +211,6 @@ void mrfe_cv(struct mrfe_data *data) {
     data->c = best_c;
 }
 
-void mrfe(struct mrfe_data *data) {
+void mrfse(struct mrfse_data *data) {
     estimate_graph(data);
 }

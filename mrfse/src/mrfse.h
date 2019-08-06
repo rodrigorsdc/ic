@@ -1,9 +1,9 @@
 #include "array.h"
 
-#ifndef MRFE_H
-#define MRFE_H
+#ifndef MRFSE_H
+#define MRFSE_H
 
-struct mrfe_data {
+struct mrfse_data {
     int V_size;
     array *V;
     int A_size;
@@ -27,7 +27,7 @@ struct mrfe_data {
     int c_values_size;
 };
 
-void mrfe(struct mrfe_data *data);
-void mrfe_cv(struct mrfe_data *data);
+void mrfse(struct mrfse_data *data);
+void mrfse_cv(struct mrfse_data *data);
 
 #endif

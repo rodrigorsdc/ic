@@ -1,5 +1,0 @@
-useDynLib(mrfe)
-export(mrfe)
-export(cv.mrfe)
-export(con.mrfe)
-export(ncon.mrfe)

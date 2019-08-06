@@ -1,6 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
-#include "mrfe.h"
+#include "mrfse.h"
 #include "array.h"
 #include "util.h"
 
@@ -18,7 +18,7 @@ void matrix_to_flatten(int *V, int **M, int n, int m) {
 	    V[n*j + i] = M[i][j];
 }
 
-void setUp(struct mrfe_data *data, SEXP A,
+void setUp(struct mrfse_data *data, SEXP A,
 		 SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     data->V_size = ncols(sample);
     data->A_size = asInteger(A);
@@ -45,7 +45,7 @@ void setUp(struct mrfe_data *data, SEXP A,
 	data->max_neigh = asInteger(max_neigh);
 }
 
-void setDown(struct mrfe_data *data) {
+void setDown(struct mrfse_data *data) {
     if (data->cv_enable == 1) {
 	free_matrixINT(data->fold, data->sample_size);
 	free_matrixINT(data->out_fold, data->sample_size);
@@ -60,7 +60,7 @@ void setDown(struct mrfe_data *data) {
     free_matrixINT(data->sample, data->sample_size);
 }
 
-static SEXP array_to_vector(int i, struct mrfe_data *data) {
+static SEXP array_to_vector(int i, struct mrfse_data *data) {
     SEXP v = PROTECT(allocVector(INTSXP, data->adj[i]->size));
     for (int j = 0; j < data->adj[i]->size; j++)
 	INTEGER(v)[j] = data->adj[i]->array[j]+1;
@@ -110,17 +110,17 @@ void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
     check_k(k);
 }
 
-SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
+SEXP Rmrfse(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     input_checking(A, sample, c, max_neigh, NULL);
     SEXP ans;
     ans = PROTECT(allocVector(VECSXP, ncols(sample)));
     PROTECT(sample = coerceVector(sample, INTSXP));
     PROTECT(c = coerceVector(c, REALSXP));
-    struct mrfe_data *data = (struct mrfe_data *)
-	R_alloc(1, sizeof(struct mrfe_data));
+    struct mrfse_data *data = (struct mrfse_data *)
+	R_alloc(1, sizeof(struct mrfse_data));
     data->cv_enable = 0;
     setUp(data, A, sample, c, max_neigh, NULL);
-    mrfe(data);
+    mrfse(data);
     for (int i = 0; i < ncols(sample); i++)
 	SET_VECTOR_ELT(ans, i, array_to_vector(i, data));
     setDown(data);
@@ -128,17 +128,17 @@ SEXP Rmrfe(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     return ans;
 }
 
-SEXP Rmrfe_cv(SEXP A, SEXP sample, SEXP c, SEXP k,
+SEXP Rmrfse_cv(SEXP A, SEXP sample, SEXP c, SEXP k,
 	      SEXP max_neigh) {
     input_checking(A, sample, c, max_neigh, k);
     SEXP ans = PROTECT(allocVector(REALSXP, 1));
     PROTECT(sample = coerceVector(sample, INTSXP));
     PROTECT(c = coerceVector(c, REALSXP));
-    struct mrfe_data *data = (struct mrfe_data *)
-	R_alloc(1, sizeof(struct mrfe_data));
+    struct mrfse_data *data = (struct mrfse_data *)
+	R_alloc(1, sizeof(struct mrfse_data));
     data->cv_enable = 1;
     setUp(data, A, sample, c, max_neigh, k);
-    mrfe_cv(data);
+    mrfse_cv(data);
     REAL(ans)[0] = data->c;
     setDown(data);
     UNPROTECT(3);
