@@ -6,8 +6,8 @@
   Non-conservative approach for mrfse
 }
 \description{
-  Non-conservative construction of the estimated Markov Random
-  Field graph.
+  Non-conservative construction of the estimated Markov random
+  field graph.
 }
 \usage{
 ncon.mrfse(a_size, sample, c, max_neigh = NULL)
@@ -33,7 +33,7 @@ ncon.mrfse(a_size, sample, c, max_neigh = NULL)
 }
 }
 \value{
-  A adjacency matrix of the estimated Markov Random Field graph.
+  A adjacency matrix of the estimated Markov random field graph.
 }
 \references{
   FRONDANA, Iara Moreira. \emph{Model selection for discrete Markov random

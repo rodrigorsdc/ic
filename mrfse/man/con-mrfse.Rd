@@ -6,8 +6,8 @@
   Conservative approach for mrfse
 }
 \description{
-  Conservative construction of the estimated Markov Random
-  Field graph.
+  Conservative construction of the estimated Markov random
+  field graph.
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
 }
 \usage{
@@ -34,7 +34,7 @@ con.mrfse(a_size, sample, c, max_neigh = NULL)
 }
 }
 \value{
-  A adjacency matrix of the estimated Markov Random Field graph.
+  A adjacency matrix of the estimated Markov random field graph.
 }
 \references{
   FRONDANA, Iara Moreira. \emph{Model selection for discrete Markov random

@@ -3,7 +3,7 @@
 \alias{mrfse}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  A Markov Random Field estimator
+  A Markov random field structure estimator
 }
 \description{
   A penalized likelihood BIC-based to estimate Markovian neighborhoods.
