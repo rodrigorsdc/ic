@@ -18,10 +18,10 @@ void matrix_to_flatten(int *V, int **M, int n, int m) {
 	    V[n*j + i] = M[i][j];
 }
 
-void setUp(struct mrfse_data *data, SEXP A,
+void setUp(struct mrfse_data *data, SEXP a_size,
 		 SEXP sample, SEXP c, SEXP max_neigh, SEXP k) {
     data->V_size = ncols(sample);
-    data->A_size = asInteger(A);
+    data->A_size = asInteger(a_size);
     data->sample_size = nrows(sample);
     data->adj = array_matrix(data->V_size);
     data->sample = matrixINT(data->sample_size, data->V_size);
@@ -67,20 +67,20 @@ static SEXP array_to_vector(int i, struct mrfse_data *data) {
     return v;
 }
 
-static void check_A(SEXP A) {    
-    if (!isNumeric(A) || asInteger(A) <= 0)
-	error("A argument must be a scalar positive integer");    
+static void check_A(SEXP a_size) {    
+    if (!isNumeric(a_size) || asInteger(a_size) <= 0)
+	error("a_size argument must be a scalar positive integer");    
 }
 
-static void check_sample(SEXP sample, int A) {
+static void check_sample(SEXP sample, int a_size) {
     
     if (!isNumeric(sample) || !isMatrix(sample))
 	error("sample argument must be a integer-entry matrix");
 
     PROTECT(sample = coerceVector(sample, INTSXP));
-    for (int i = 1; i <= length(sample); i++)
-    	if (INTEGER(sample)[i] < 0 || INTEGER(sample)[i] >= A)
-    	    error("sample elements must be belong range 0 and A - 1");
+    for (int i = 0; i < length(sample); i++)
+    	if (INTEGER(sample)[i] < 0 || INTEGER(sample)[i] >= a_size)
+    	    error("sample elements must be belong range 0 and a_size - 1");
     UNPROTECT(1);
 }
 
@@ -101,17 +101,17 @@ static void check_k(SEXP k) {
 	error("k argument must be a scalar integer");    
 }
 
-void input_checking(SEXP A, SEXP sample, SEXP c, SEXP max_neigh,
+void input_checking(SEXP a_size, SEXP sample, SEXP c, SEXP max_neigh,
 		    SEXP k) {
-    check_A(A);
-    check_sample(sample, asInteger(A));
+    check_A(a_size);
+    check_sample(sample, asInteger(a_size));
     check_c(c);
     check_max_neigh(max_neigh, ncols(sample));
     check_k(k);
 }
 
-SEXP Rmrfse(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
-    input_checking(A, sample, c, max_neigh, NULL);
+SEXP Rmrfse(SEXP a_size, SEXP sample, SEXP c, SEXP max_neigh) {
+    input_checking(a_size, sample, c, max_neigh, NULL);
     SEXP ans;
     ans = PROTECT(allocVector(VECSXP, ncols(sample)));
     PROTECT(sample = coerceVector(sample, INTSXP));
@@ -119,7 +119,7 @@ SEXP Rmrfse(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     struct mrfse_data *data = (struct mrfse_data *)
 	R_alloc(1, sizeof(struct mrfse_data));
     data->cv_enable = 0;
-    setUp(data, A, sample, c, max_neigh, NULL);
+    setUp(data, a_size, sample, c, max_neigh, NULL);
     mrfse(data);
     for (int i = 0; i < ncols(sample); i++)
 	SET_VECTOR_ELT(ans, i, array_to_vector(i, data));
@@ -128,16 +128,16 @@ SEXP Rmrfse(SEXP A, SEXP sample, SEXP c, SEXP max_neigh) {
     return ans;
 }
 
-SEXP Rmrfse_cv(SEXP A, SEXP sample, SEXP c, SEXP k,
+SEXP Rmrfse_cv(SEXP a_size, SEXP sample, SEXP c, SEXP k,
 	      SEXP max_neigh) {
-    input_checking(A, sample, c, max_neigh, k);
+    input_checking(a_size, sample, c, max_neigh, k);
     SEXP ans = PROTECT(allocVector(REALSXP, 1));
     PROTECT(sample = coerceVector(sample, INTSXP));
     PROTECT(c = coerceVector(c, REALSXP));
     struct mrfse_data *data = (struct mrfse_data *)
 	R_alloc(1, sizeof(struct mrfse_data));
     data->cv_enable = 1;
-    setUp(data, A, sample, c, max_neigh, k);
+    setUp(data, a_size, sample, c, max_neigh, k);
     mrfse_cv(data);
     REAL(ans)[0] = data->c;
     setDown(data);
