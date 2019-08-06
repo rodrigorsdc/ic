@@ -2,7 +2,7 @@ Package: mrfse
 Title: Markov random field structure estimator
 Version: 0.1
 Date: 2019-08-06
-Description: A markov random field structure estimator that uses a penalized
+Description: A Markov random field structure estimator that uses a penalized
 	      maximum conditional likelihood method similar to the Bayesian
 	      Information Criterion (Frondana, 2016).
 License: GPL (>= 3)
