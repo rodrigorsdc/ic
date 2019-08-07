@@ -40,6 +40,7 @@ con.mrfse(a_size, sample, c, max_neigh = NULL)
   FRONDANA, Iara Moreira. \emph{Model selection for discrete Markov random
   fields on graphs}. São Paulo : Instituto de Matemática e Estatística,
   University of São Paulo, 2016. Doctoral Thesis in Estatística.
+  <doi:10.11606/T.45.2018.tde-02022018-151123>
   \url{http://www.teses.usp.br/teses/disponiveis/45/45133/tde-02022018-151123/publico/tese_Iara_Frondana.pdf}
 
 }
