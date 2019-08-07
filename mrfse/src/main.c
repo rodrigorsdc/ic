@@ -5,14 +5,12 @@
 #include "util.h"
 
 void flatten_to_matrix(int **M, int n, int m, int *V) {
-    int k = 0;
     for (int i = 0; i < n; i++)
 	for (int j = 0; j < m; j++)
 	    M[i][j] = V[n*j + i];
 }
 
 void matrix_to_flatten(int *V, int **M, int n, int m) {
-    int k = 0;
     for (int i = 0; i < n; i++)
 	for (int j = 0; j < m; j++)
 	    V[n*j + i] = M[i][j];
