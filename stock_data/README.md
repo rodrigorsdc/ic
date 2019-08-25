@@ -16,8 +16,13 @@ points with a difference of 5 days.
 ## Columns
 
 1st column corresponds Brazil
+
 2nd column corresponds UK
+
 3th column corresponds India
+
 4th column corresponds France
+
 5th column corresponds Japan
+
 6th column corresponds USA
